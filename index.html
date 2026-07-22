@@ -399,17 +399,34 @@
 
   const STORAGE_KEY = 'landing-session';
   let storageAvailable = true;
-  let hasWarnedStorage = false;
 
-  async function loadState(){
-    if (!window.storage){ storageAvailable = false; showStorageNote(); document.getElementById('roundInput').value=''; render(); return; }
+  function storageBackend(){
     try{
-      const res = await window.storage.get(STORAGE_KEY, false);
-      if (res && res.value){
-        const parsed = JSON.parse(res.value);
+      const t = '__probe__';
+      window.localStorage.setItem(t, '1');
+      window.localStorage.removeItem(t);
+      return window.localStorage;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function loadState(){
+    const store = storageBackend();
+    if (!store){
+      storageAvailable = false;
+      showStorageNote();
+      document.getElementById('roundInput').value = '';
+      render();
+      return;
+    }
+    try{
+      const raw = store.getItem(STORAGE_KEY);
+      if (raw){
+        const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.throws)) state = parsed;
       }
-    }catch(e){ /* no existing session yet, that's fine */ }
+    }catch(e){ /* no existing session yet, or unreadable — start fresh */ }
     document.getElementById('roundInput').value = state.round || '';
     render();
   }
@@ -419,14 +436,15 @@
     if (el) el.style.display = 'block';
   }
 
-  async function saveState(){
-    if (!storageAvailable || !window.storage) return;
+  function saveState(){
+    if (!storageAvailable) return;
+    const store = storageBackend();
+    if (!store){ storageAvailable = false; showStorageNote(); return; }
     try{
-      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+      store.setItem(STORAGE_KEY, JSON.stringify(state));
     }catch(e){
       storageAvailable = false;
       showStorageNote();
-      hasWarnedStorage = true;
     }
   }
 
