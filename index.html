@@ -546,7 +546,8 @@
   let state = {
     round: null,
     station: 1,
-    throws: [] // {round, station, throw, x, y, score}  -- x/y null for basket makes
+    meta: {},   // round -> {date, time}
+    throws: []  // {round, station, throw, x, y, score, bonus} -- x/y null for ringers
   };
 
   const STORAGE_KEY = 'landing-session';
@@ -576,7 +577,10 @@
       const raw = store.getItem(STORAGE_KEY);
       if (raw){
         const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.throws)) state = parsed;
+        if (parsed && Array.isArray(parsed.throws)){
+          state = parsed;
+          if (!state.meta) state.meta = {};
+        }
       }
     }catch(e){ /* no existing session yet, or unreadable — start fresh */ }
     document.getElementById('roundInput').value = state.round || '';
@@ -598,6 +602,24 @@
       storageAvailable = false;
       showStorageNote();
     }
+  }
+
+  function metaFor(round){
+    if (round === null || round === '') return null;
+    if (!state.meta) state.meta = {};
+    return state.meta[round] || null;
+  }
+
+  function stampNow(round){
+    if (round === null || round === '') return;
+    if (!state.meta) state.meta = {};
+    if (state.meta[round]) return; // already stamped, don't overwrite
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    state.meta[round] = {
+      date: `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`,
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`
+    };
   }
 
   function throwsForStation(st){
@@ -900,6 +922,7 @@
       return;
     }
     const throwNum = throwsForStation(state.station).length + 1;
+    stampNow(state.round);
     state.throws.push({ round: state.round, station: state.station, throw: throwNum, x, y, score, bonus: 0 });
     saveState();
     render();
@@ -1042,13 +1065,15 @@
   }
 
   function toCSV(){
-    const header = 'round,station,throw,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
+    const header = 'date,time,round,station,throw,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
-      if (t.x === null || t.y === null) return `${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},,`;
+      const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
+      const stamp = `${m.date || ''},${m.time || ''}`;
+      if (t.x === null || t.y === null) return `${stamp},${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},,`;
       const dx = Math.round((t.x - CX)*10)/10;
       const dyUp = Math.round((CY - t.y)*10)/10;
-      return `${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},${dx},${dyUp}`;
+      return `${stamp},${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},${dx},${dyUp}`;
     }).join('\n');
     return header + rows;
   }
@@ -1140,6 +1165,7 @@
   document.getElementById('resetSession').addEventListener('click', ()=>{
     if (!confirm('Clear all logged throws for this session? This cannot be undone.')) return;
     state.throws = [];
+    state.meta = {};
     saveState();
     render();
   });
