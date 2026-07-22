@@ -227,6 +227,13 @@
     font-size:0.62rem;
     margin-right:2px;
   }
+  .score-pill.bonus-pill{
+    background:transparent;
+    color:#8a6010;
+    border:1.5px solid #c9932a;
+    font-size:0.58rem;
+    margin-right:5px;
+  }
   .total-row{
     display:flex;
     justify-content:space-between;
@@ -334,7 +341,7 @@
   <button id="resetSession" class="danger">Clear Session</button>
 </div>
 
-<p class="target-hint">Tap where it landed &mdash; or tap BASKET if it went in (no need to place discs buried under the pole).</p>
+<p class="target-hint">Tap where it landed, or tap BASKET if it went in. For a can knockoff, log the throw first, then tap +5 CAN to attach the bonus to it (tap again to remove).</p>
 <p class="geo-note">Rings scaled to your measured target &middot; top of diagram = top of your sketch</p>
 <p class="storage-note" id="storageNote">Auto-save isn't available in this view — keep this tab open, or export before closing.</p>
 
@@ -354,9 +361,15 @@
   // basket strip (below the field, full width, short height)
   const STRIP_W = VB_W;
   const STRIP_H = 120;
-  const BASKET_CX = 75;
+  const BASKET_CX = 62;
   const BASKET_CY = STRIP_H/2;
-  const BASKET_R = 44;
+  const BASKET_R = 42;
+  const CAN_W = 78;
+  const CAN_H = 66;
+  const CAN_X = BASKET_CX + BASKET_R + 16;
+  const CAN_Y = BASKET_CY - CAN_H/2;
+  const TALLY_X = CAN_X + CAN_W + 20;
+  const CAN_BONUS = 5;
 
   function colorForScore(s){
     return {10:'#c9932a',3:'#3d6b35',2:'#3d6b8a',1:'#b5651d',0:'#8a7a60'}[s];
@@ -561,54 +574,98 @@
     basketCircle.setAttribute('fill','#c9932a'); basketCircle.setAttribute('stroke','#8a6010'); basketCircle.setAttribute('stroke-width','2.5');
     svg.appendChild(basketCircle);
     const basketLabel = document.createElementNS(ns,'text');
-    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+8);
+    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+2);
     basketLabel.setAttribute('text-anchor','middle');
     basketLabel.setAttribute('font-size','22');
     basketLabel.setAttribute('fill','#fff');
     basketLabel.setAttribute('font-weight','700');
     basketLabel.textContent = '10';
     svg.appendChild(basketLabel);
+    const basketSub = document.createElementNS(ns,'text');
+    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+17);
+    basketSub.setAttribute('text-anchor','middle');
+    basketSub.setAttribute('font-size','8');
+    basketSub.setAttribute('fill','#fff');
+    basketSub.setAttribute('letter-spacing','0.5');
+    basketSub.textContent = 'BASKET';
+    svg.appendChild(basketSub);
 
-    const caption = document.createElementNS(ns,'text');
-    caption.setAttribute('x',BASKET_CX + BASKET_R + 18); caption.setAttribute('y',BASKET_CY - 14);
-    caption.setAttribute('font-size','12');
-    caption.setAttribute('fill','#5a4a30');
-    caption.setAttribute('font-weight','700');
-    caption.setAttribute('letter-spacing','1');
-    caption.textContent = 'BASKET';
-    svg.appendChild(caption);
+    // ---- CAN bonus button ----
+    const canRect = document.createElementNS(ns,'rect');
+    canRect.setAttribute('id','canBtn');
+    canRect.setAttribute('x', CAN_X); canRect.setAttribute('y', CAN_Y);
+    canRect.setAttribute('width', CAN_W); canRect.setAttribute('height', CAN_H);
+    canRect.setAttribute('rx', 8);
+    canRect.setAttribute('fill', 'none');
+    canRect.setAttribute('stroke', '#8a6010');
+    canRect.setAttribute('stroke-width','2.5');
+    canRect.setAttribute('stroke-dasharray','6,4');
+    svg.appendChild(canRect);
 
-    const sub = document.createElementNS(ns,'text');
-    sub.setAttribute('x',BASKET_CX + BASKET_R + 18); sub.setAttribute('y',BASKET_CY + 4);
-    sub.setAttribute('font-size','9');
-    sub.setAttribute('fill','#7a6a50');
-    sub.textContent = 'tap here — no position needed';
-    svg.appendChild(sub);
+    const canLabel = document.createElementNS(ns,'text');
+    canLabel.setAttribute('id','canLabel');
+    canLabel.setAttribute('x', CAN_X + CAN_W/2); canLabel.setAttribute('y', CAN_Y + CAN_H/2 - 1);
+    canLabel.setAttribute('text-anchor','middle');
+    canLabel.setAttribute('font-size','17');
+    canLabel.setAttribute('fill','#8a6010');
+    canLabel.setAttribute('font-weight','700');
+    canLabel.textContent = '+5';
+    svg.appendChild(canLabel);
+
+    const canSub = document.createElementNS(ns,'text');
+    canSub.setAttribute('id','canSub');
+    canSub.setAttribute('x', CAN_X + CAN_W/2); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 14);
+    canSub.setAttribute('text-anchor','middle');
+    canSub.setAttribute('font-size','8');
+    canSub.setAttribute('fill','#8a6010');
+    canSub.setAttribute('letter-spacing','0.5');
+    canSub.textContent = 'CAN';
+    svg.appendChild(canSub);
 
     // tally slots this station
     for (let i=0;i<5;i++){
       const rect = document.createElementNS(ns,'rect');
       rect.setAttribute('id', 'tally-'+i);
-      rect.setAttribute('x', BASKET_CX + BASKET_R + 18 + i*24);
-      rect.setAttribute('y', BASKET_CY + 16);
-      rect.setAttribute('width', 16); rect.setAttribute('height', 16);
+      rect.setAttribute('x', TALLY_X + i*22);
+      rect.setAttribute('y', BASKET_CY - 8);
+      rect.setAttribute('width', 15); rect.setAttribute('height', 15);
       rect.setAttribute('rx', 3);
       rect.setAttribute('fill', 'none');
       rect.setAttribute('stroke', '#8a6010');
       rect.setAttribute('stroke-width','1.5');
       svg.appendChild(rect);
     }
+    const tallyCaption = document.createElementNS(ns,'text');
+    tallyCaption.setAttribute('x', TALLY_X); tallyCaption.setAttribute('y', BASKET_CY - 16);
+    tallyCaption.setAttribute('font-size','8');
+    tallyCaption.setAttribute('fill','#7a6a50');
+    tallyCaption.setAttribute('letter-spacing','0.5');
+    tallyCaption.textContent = 'MAKES THIS STATION';
+    svg.appendChild(tallyCaption);
 
     svg.addEventListener('click', handleBasketTap);
   }
 
   function updateTally(){
-    const count = throwsForStation(state.station).filter(t=>t.score===10).length;
+    const list = throwsForStation(state.station);
+    const count = list.filter(t=>t.score===10).length;
     for (let i=0;i<5;i++){
       const el = document.getElementById('tally-'+i);
       if (!el) continue;
       el.setAttribute('fill', i < count ? '#c9932a' : 'none');
     }
+    // can bonus button reflects whether the most recent throw has it
+    const last = list.length ? list[list.length-1] : null;
+    const active = !!(last && last.bonus);
+    const btn = document.getElementById('canBtn');
+    const lbl = document.getElementById('canLabel');
+    const sub = document.getElementById('canSub');
+    if (btn){
+      btn.setAttribute('fill', active ? '#c9932a' : 'none');
+      btn.setAttribute('stroke-dasharray', active ? 'none' : '6,4');
+    }
+    if (lbl) lbl.setAttribute('fill', active ? '#fff' : '#8a6010');
+    if (sub) sub.setAttribute('fill', active ? '#fff' : '#8a6010');
   }
 
   function drawMarkers(){
@@ -653,7 +710,7 @@
       return;
     }
     const throwNum = throwsForStation(state.station).length + 1;
-    state.throws.push({ round: state.round, station: state.station, throw: throwNum, x, y, score });
+    state.throws.push({ round: state.round, station: state.station, throw: throwNum, x, y, score, bonus: 0 });
     saveState();
     render();
   }
@@ -676,10 +733,31 @@
     const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
     const x = (clientX - rect.left) / rect.width * STRIP_W;
     const y = (clientY - rect.top) / rect.height * STRIP_H;
+
     const dist = Math.hypot(x - BASKET_CX, y - BASKET_CY);
     if (dist <= BASKET_R){
       logThrow(10, null, null);
+      return;
     }
+    if (x >= CAN_X && x <= CAN_X + CAN_W && y >= CAN_Y && y <= CAN_Y + CAN_H){
+      toggleCanBonus();
+    }
+  }
+
+  function toggleCanBonus(){
+    const list = throwsForStation(state.station);
+    if (list.length === 0){
+      flashStationSummary('Log the throw first, then add the can bonus.');
+      return;
+    }
+    const last = list[list.length - 1];
+    last.bonus = last.bonus ? 0 : CAN_BONUS;
+    saveState();
+    render();
+  }
+
+  function throwPoints(t){
+    return t.score + (t.bonus || 0);
   }
 
   function flashStationSummary(msg){
@@ -722,7 +800,7 @@
       el.classList.remove('complete');
       return;
     }
-    const subtotal = list.reduce((a,t)=>a+t.score,0);
+    const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
     if (list.length >= 5){
       el.innerHTML = `Station ${state.station} complete — <strong>${subtotal} pts</strong>. Tap › for next station.`;
       el.classList.add('complete');
@@ -749,9 +827,12 @@
     let grand = 0;
     Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{
       const list = byStation[st].sort((a,b)=>a.throw-b.throw);
-      const subtotal = list.reduce((a,t)=>a+t.score,0);
+      const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
       grand += subtotal;
-      const pills = list.map(t=>`<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`).join('');
+      const pills = list.map(t=>{
+        const base = `<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`;
+        return t.bonus ? base + `<span class="score-pill bonus-pill">+${t.bonus}</span>` : base;
+      }).join('');
       rows += `<tr><td>${st}</td><td>${pills}</td><td style="text-align:right; font-weight:700;">${subtotal}</td></tr>`;
     });
     wrap.innerHTML = `<table>
@@ -771,12 +852,13 @@
   }
 
   function toCSV(){
-    const header = 'round,station,throw,score,horizontal_in_right_positive,vertical_in_top_positive\n';
+    const header = 'round,station,throw,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
     const rows = state.throws.map(t => {
-      if (t.x === null || t.y === null) return `${t.round},${t.station},${t.throw},${t.score},,`;
+      const bonus = t.bonus || 0;
+      if (t.x === null || t.y === null) return `${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},,`;
       const dx = Math.round((t.x - CX)*10)/10;
       const dyUp = Math.round((CY - t.y)*10)/10;
-      return `${t.round},${t.station},${t.throw},${t.score},${dx},${dyUp}`;
+      return `${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},${dx},${dyUp}`;
     }).join('\n');
     return header + rows;
   }
