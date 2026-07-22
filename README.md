@@ -1,2 +1,2 @@
 # Disc-tracker
-Scoring app for disc golf game
+Scoring app for novel VT disc golf game
