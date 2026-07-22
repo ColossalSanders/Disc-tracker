@@ -5,64 +5,118 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Landing Tracker</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Rye&family=Saira+Condensed:wght@400;600;700;900&display=swap');
 
   :root{
-    --bg:#ebe6db;
-    --ink:#2c2416;
-    --muted:#7a6a50;
-    --card:#fdfaf4;
-    --border:#b8a890;
-    --accent:#d9550c;
-    --s10:#c9932a;
-    --s3:#3d6b35;
-    --s2:#3d6b8a;
-    --s1:#b5651d;
-    --s0:#8a7a60;
+    --tent:#6E1417;
+    --tent-dark:#4E0E11;
+    --paper:#F2E4C4;
+    --paper-deep:#E5D2AA;
+    --ink:#1C1410;
+    --brass:#C9922B;
+    --brass-dark:#8A6212;
+    --teal:#1E5C5A;
+    --prize:#5B2A86;
+    --dust:#7A6A55;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html,body{touch-action:manipulation;}
   body{
-    background:var(--bg);
-    font-family:'Space Mono', monospace;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(0,0,0,0.10) 0 22px,
+        rgba(255,255,255,0.03) 22px 44px),
+      var(--tent);
+    font-family:'Saira Condensed', system-ui, sans-serif;
     color:var(--ink);
-    padding:16px 12px 40px;
+    padding:0 0 48px;
     max-width:560px;
     margin:0 auto;
-  }
-  h1{
-    font-family:'Playfair Display', serif;
-    font-size:1.7rem;
-    text-align:center;
-    color:#1a1208;
-  }
-  .subtitle{
-    text-align:center;
-    font-size:0.66rem;
-    letter-spacing:0.16em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin-bottom:18px;
-  }
-  .card{
-    background:var(--card);
-    border:2px solid var(--border);
-    border-radius:6px;
-    padding:16px;
-    box-shadow:4px 4px 0 var(--border);
-    margin-bottom:16px;
-  }
-  .card-label{
-    font-size:0.58rem;
-    letter-spacing:0.18em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin-bottom:12px;
-    border-bottom:1.5px solid var(--border);
-    padding-bottom:7px;
-    font-weight:bold;
+    min-height:100vh;
   }
 
+  /* ---- poster header ---- */
+  .marquee{
+    position:relative;
+    text-align:center;
+    padding:26px 16px 20px;
+    overflow:hidden;
+  }
+  .eyebrow{
+    position:relative;
+    font-size:0.66rem;
+    font-weight:700;
+    letter-spacing:0.36em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:8px;
+  }
+  h1{
+    position:relative;
+    font-family:'Rye', serif;
+    font-size:clamp(2.1rem, 10vw, 3rem);
+    line-height:0.98;
+    color:var(--paper);
+    text-shadow:
+      2px 2px 0 var(--tent-dark),
+      4px 4px 0 rgba(0,0,0,0.35);
+    margin-bottom:10px;
+  }
+  .rule{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    color:var(--brass);
+    font-size:0.62rem;
+    font-weight:700;
+    letter-spacing:0.26em;
+    text-transform:uppercase;
+  }
+  .rule::before, .rule::after{
+    content:'';
+    height:2px;
+    width:46px;
+    background:linear-gradient(90deg, transparent, var(--brass));
+  }
+  .rule::after{background:linear-gradient(90deg, var(--brass), transparent);}
+
+  .stage{padding:0 12px;}
+
+  /* ---- panels ---- */
+  .card{
+    position:relative;
+    background:var(--paper);
+    border:2.5px solid var(--ink);
+    border-radius:3px;
+    padding:16px;
+    box-shadow:0 4px 0 rgba(0,0,0,0.4);
+    margin-bottom:16px;
+  }
+  .card.awning{padding-top:24px;}
+  .card.awning::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:11px;
+    background:repeating-linear-gradient(90deg,
+      var(--tent) 0 14px,
+      var(--paper-deep) 14px 28px);
+    border-bottom:2px solid var(--ink);
+  }
+  .card-label{
+    font-size:0.74rem;
+    font-weight:900;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--tent);
+    margin-bottom:12px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:8px;
+  }
+
+  /* ---- control bar ---- */
   .control-bar{
     display:flex;
     justify-content:space-between;
@@ -73,238 +127,304 @@
   .round-field{
     display:flex;
     align-items:center;
-    gap:6px;
-    font-size:0.72rem;
-    color:var(--muted);
+    gap:7px;
+    font-size:0.74rem;
+    font-weight:700;
+    color:var(--dust);
     text-transform:uppercase;
-    letter-spacing:0.08em;
+    letter-spacing:0.16em;
   }
   .round-field input{
-    width:52px;
-    font-family:'Space Mono', monospace;
-    font-size:0.95rem;
+    width:56px;
+    font-family:'Saira Condensed', sans-serif;
+    font-weight:900;
+    font-size:1.15rem;
     text-align:center;
-    background:var(--bg);
-    border:1.5px solid var(--border);
-    border-radius:4px;
-    padding:5px 2px;
+    background:var(--paper-deep);
+    border:2px solid var(--ink);
+    border-radius:2px;
+    padding:3px 2px;
     color:var(--ink);
   }
   .station-nav{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:8px;
   }
   .station-nav button{
-    width:36px; height:36px;
+    width:38px; height:38px;
     border-radius:50%;
-    border:1.5px solid var(--border);
-    background:var(--bg);
-    font-size:1.1rem;
+    border:2.5px solid var(--ink);
+    background:var(--brass);
+    font-family:'Saira Condensed', sans-serif;
+    font-size:1.2rem;
+    font-weight:900;
+    line-height:1;
     color:var(--ink);
     cursor:pointer;
   }
-  .station-nav button:active{background:var(--border);}
+  .station-nav button:active{background:var(--brass-dark); color:var(--paper);}
   .station-display{
-    font-family:'Playfair Display', serif;
-    font-size:1.1rem;
-    min-width:96px;
     text-align:center;
+    min-width:104px;
   }
-  .station-display .num{font-weight:700; color:var(--accent);}
+  .station-display .cap{
+    display:block;
+    font-size:0.58rem;
+    font-weight:700;
+    letter-spacing:0.24em;
+    color:var(--dust);
+    text-transform:uppercase;
+  }
+  .station-display .num{
+    font-family:'Rye', serif;
+    font-size:1.7rem;
+    line-height:1.1;
+    color:var(--tent);
+  }
 
+  /* ---- throw counter ---- */
   .throw-status{
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:14px;
+    gap:12px;
     margin-bottom:12px;
   }
-  .throw-dots{display:flex; gap:6px;}
+  .throw-dots{display:flex; gap:7px;}
   .throw-dot{
-    width:11px; height:11px;
+    width:13px; height:13px;
     border-radius:50%;
-    border:1.5px solid var(--muted);
+    border:2px solid var(--paper);
     background:transparent;
   }
-  .throw-dot.filled{background:var(--accent); border-color:var(--accent);}
-  .throw-label{font-size:0.72rem; color:var(--muted); letter-spacing:0.05em;}
-
-  .target-wrap{
-    display:flex;
-    justify-content:center;
-    margin-bottom:8px;
+  .throw-dot.filled{background:var(--brass); border-color:var(--brass);}
+  .throw-label{
+    font-size:0.76rem;
+    font-weight:700;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--paper);
   }
+
+  /* ---- target + basket ---- */
+  .target-wrap{display:flex; justify-content:center; margin-bottom:10px;}
   #target{
     width:100%;
     aspect-ratio:315/312;
     touch-action:none;
     cursor:crosshair;
     display:block;
+    border:2.5px solid var(--ink);
+    border-radius:3px;
+    box-shadow:0 4px 0 rgba(0,0,0,0.4);
+    background:var(--paper);
   }
-  .basket-wrap{
-    display:flex;
-    justify-content:center;
-    margin-bottom:6px;
-  }
+  .basket-wrap{display:flex; justify-content:center; margin-bottom:12px;}
   #basketStrip{
     width:100%;
     aspect-ratio:315/120;
     touch-action:none;
     cursor:pointer;
     display:block;
-  }
-  .target-hint{
-    text-align:center;
-    font-size:0.63rem;
-    color:var(--muted);
-    margin-top:24px;
-    margin-bottom:10px;
-    font-style:italic;
+    border:2.5px solid var(--ink);
+    border-radius:3px;
+    box-shadow:0 4px 0 rgba(0,0,0,0.4);
+    background:var(--paper);
   }
 
+  /* ---- actions ---- */
   .action-row{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    margin-bottom:14px;
-    font-size:0.7rem;
+    gap:10px;
+    margin-bottom:12px;
   }
   .action-row button{
-    background:var(--bg);
-    border:1.5px solid var(--border);
-    border-radius:4px;
-    padding:8px 12px;
-    font-family:'Space Mono', monospace;
-    font-size:0.7rem;
+    background:var(--paper);
+    border:2.5px solid var(--ink);
+    border-radius:2px;
+    padding:8px 14px;
+    font-family:'Saira Condensed', sans-serif;
+    font-size:0.78rem;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
     color:var(--ink);
     cursor:pointer;
-    letter-spacing:0.03em;
+    box-shadow:0 3px 0 rgba(0,0,0,0.4);
   }
-  .action-row button:active{background:var(--border);}
+  .action-row button:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.4);}
   .toggle{
     display:flex;
     align-items:center;
-    gap:6px;
-    color:var(--muted);
+    gap:7px;
+    color:var(--paper);
+    font-size:0.76rem;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    cursor:pointer;
   }
-  .toggle input{width:14px; height:14px;}
+  .toggle input{width:17px; height:17px; accent-color:var(--brass);}
 
+  /* ---- station summary ---- */
   .station-summary{
     text-align:center;
-    font-size:0.78rem;
-    color:var(--muted);
+    font-size:0.86rem;
+    font-weight:600;
+    letter-spacing:0.06em;
+    color:var(--paper);
     margin-bottom:16px;
-    min-height:1.2em;
+    min-height:1.3em;
   }
-  .station-summary strong{color:var(--ink);}
-  .station-summary.complete{color:#2a5010;}
+  .station-summary strong{
+    font-family:'Rye', serif;
+    font-weight:400;
+    font-size:1.05rem;
+    color:var(--brass);
+  }
+  .station-summary.complete strong{color:var(--brass);}
 
-  table{width:100%; border-collapse:collapse; font-size:0.68rem;}
+  /* ---- tally sheet ---- */
+  table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   thead th{
     text-align:left;
-    color:var(--muted);
+    color:var(--dust);
     text-transform:uppercase;
-    letter-spacing:0.05em;
-    font-size:0.58rem;
-    padding-bottom:6px;
-    border-bottom:1.5px solid var(--border);
+    letter-spacing:0.16em;
+    font-size:0.62rem;
+    font-weight:700;
+    padding-bottom:7px;
+    border-bottom:2px solid var(--ink);
   }
   tbody td{
-    padding:6px 4px;
-    border-bottom:1px dashed rgba(0,0,0,0.08);
-    vertical-align:top;
+    padding:7px 4px;
+    border-bottom:1px dashed rgba(28,20,16,0.22);
+    vertical-align:middle;
+    font-weight:600;
   }
   tbody tr:last-child td{border-bottom:none;}
   .score-pill{
     display:inline-block;
-    min-width:16px;
+    min-width:20px;
     text-align:center;
-    padding:1px 4px;
-    border-radius:3px;
-    font-weight:700;
-    color:#fff;
-    font-size:0.62rem;
-    margin-right:2px;
+    padding:2px 5px;
+    border-radius:2px;
+    font-weight:900;
+    color:var(--paper);
+    font-size:0.72rem;
+    margin-right:3px;
+    border:1.5px solid var(--ink);
   }
   .score-pill.bonus-pill{
-    background:transparent;
-    color:#8a6010;
-    border:1.5px solid #c9932a;
-    font-size:0.58rem;
-    margin-right:5px;
+    background:var(--paper);
+    color:var(--tent);
+    border:1.5px dashed var(--tent);
+    margin-right:6px;
   }
   .total-row{
     display:flex;
     justify-content:space-between;
-    margin-top:10px;
-    padding-top:10px;
-    border-top:1.5px solid var(--border);
-    font-size:0.85rem;
+    align-items:baseline;
+    margin-top:12px;
+    padding-top:11px;
+    border-top:3px double var(--ink);
+    font-size:0.72rem;
     font-weight:700;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--dust);
+  }
+  .total-row span:last-child{
+    font-family:'Rye', serif;
+    font-size:1.7rem;
+    letter-spacing:0;
+    color:var(--tent);
   }
   .empty-log{
-    color:var(--muted);
-    font-size:0.7rem;
-    font-style:italic;
+    color:var(--dust);
+    font-size:0.82rem;
     text-align:center;
-    padding:8px 0;
+    padding:10px 0;
   }
 
-  .export-row{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
+  /* ---- export ---- */
+  .export-row{display:flex; gap:8px; flex-wrap:wrap;}
   .export-row button{
     flex:1;
-    min-width:100px;
+    min-width:104px;
     background:var(--ink);
-    color:var(--card);
-    border:none;
-    border-radius:5px;
-    padding:11px 8px;
-    font-family:'Space Mono', monospace;
-    font-size:0.68rem;
-    letter-spacing:0.04em;
+    color:var(--paper);
+    border:2.5px solid var(--ink);
+    border-radius:2px;
+    padding:12px 8px;
+    font-family:'Saira Condensed', sans-serif;
+    font-size:0.76rem;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
     cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.45);
   }
   .export-row button.danger{
-    background:transparent;
-    color:var(--accent);
-    border:1.5px solid var(--accent);
+    background:var(--paper);
+    color:var(--tent);
+    border-color:var(--tent);
   }
-  .export-row button:active{opacity:0.75;}
+  .export-row button:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.45);}
 
-  .geo-note{
-    font-size:0.6rem;
-    color:var(--muted);
+  /* ---- footnotes ---- */
+  .target-hint{
     text-align:center;
-    margin:0 0 10px;
+    font-size:0.76rem;
+    line-height:1.5;
+    color:var(--paper);
+    opacity:0.72;
+    margin-top:26px;
+    margin-bottom:9px;
   }
   .storage-note{
-    font-size:0.6rem;
-    color:var(--accent);
+    font-size:0.74rem;
+    font-weight:700;
+    color:var(--brass);
     text-align:center;
-    margin:0 0 10px;
+    margin:0 0 9px;
     display:none;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+  button:focus-visible, input:focus-visible{
+    outline:3px solid var(--brass);
+    outline-offset:2px;
   }
 </style>
 </head>
 <body>
 
-<h1>Landing Tracker</h1>
-<p class="subtitle">Plot every throw &middot; auto-scored to your target's real dimensions</p>
+<header class="marquee">
+  <p class="eyebrow">Eleven Stations &middot; Five Discs Each</p>
+  <h1>Landing Tracker</h1>
+  <p class="rule">Every Throw Recorded</p>
+</header>
 
-<div class="card">
+<div class="stage">
+
+<div class="card awning">
   <div class="control-bar">
     <div class="round-field">
-      ROUND <input type="number" id="roundInput" min="1" placeholder="—">
+      Round <input type="number" id="roundInput" min="1" placeholder="—">
     </div>
     <div class="station-nav">
-      <button id="prevStation">‹</button>
-      <div class="station-display">STATION <span class="num" id="stationNum">1</span></div>
-      <button id="nextStation">›</button>
+      <button id="prevStation" aria-label="Previous station">&lsaquo;</button>
+      <div class="station-display">
+        <span class="cap">Station</span>
+        <span class="num" id="stationNum">1</span>
+      </div>
+      <button id="nextStation" aria-label="Next station">&rsaquo;</button>
     </div>
   </div>
 </div>
@@ -319,7 +439,7 @@
 </div>
 
 <div class="action-row">
-  <button id="undoBtn">↺ Undo last</button>
+  <button id="undoBtn">&#8634; Undo last</button>
   <label class="toggle"><input type="checkbox" id="showAllToggle"> Show all shots</label>
 </div>
 
@@ -329,21 +449,22 @@
 
 <div class="station-summary" id="stationSummary"></div>
 
-<div class="card">
-  <div class="card-label">Session Log</div>
+<div class="card awning">
+  <div class="card-label">Tally Sheet</div>
   <div id="logWrap"></div>
-  <div class="total-row"><span>Total</span><span id="grandTotal">0</span></div>
+  <div class="total-row"><span>Round total</span><span id="grandTotal">0</span></div>
 </div>
 
 <div class="export-row">
   <button id="exportCsv">Export CSV</button>
-  <button id="exportImg">Export Image</button>
-  <button id="resetSession" class="danger">Clear Session</button>
+  <button id="exportImg">Export image</button>
+  <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Tap where it landed, or tap BASKET if it went in. For a can knockoff, log the throw first, then tap +5 CAN to attach the bonus to it (tap again to remove).</p>
-<p class="geo-note">Rings scaled to your measured target &middot; top of diagram = top of your sketch</p>
-<p class="storage-note" id="storageNote">Auto-save isn't available in this view — keep this tab open, or export before closing.</p>
+<p class="target-hint">Tap where the disc landed, or tap the medallion if it went in. For a can knockoff, log the throw first, then tap +5 CAN to attach the bonus.</p>
+<p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
+
+</div>
 
 <script>
 (function(){
@@ -364,15 +485,33 @@
   const BASKET_CX = 62;
   const BASKET_CY = STRIP_H/2;
   const BASKET_R = 42;
-  const CAN_W = 78;
-  const CAN_H = 66;
+  const CAN_W = 58;
+  const CAN_H = 68;
+  const CAN_RY = 8;
   const CAN_X = BASKET_CX + BASKET_R + 16;
   const CAN_Y = BASKET_CY - CAN_H/2;
   const TALLY_X = CAN_X + CAN_W + 20;
   const CAN_BONUS = 5;
 
+  const PAL = {
+    tent:'#6E1417',
+    paper:'#F2E4C4',
+    paperDeep:'#E5D2AA',
+    ink:'#1C1410',
+    brass:'#C9922B',
+    brassDark:'#8A6212',
+    teal:'#1E5C5A',
+    prize:'#5B2A86',
+    dust:'#7A6A55',
+    s0:'#7A6A55',
+    s1:'#A81E22',
+    s2:'#1E5C5A',
+    s3:'#C9922B',
+    s10:'#5B2A86'
+  };
+
   function colorForScore(s){
-    return {10:'#c9932a',3:'#3d6b35',2:'#3d6b8a',1:'#b5651d',0:'#8a7a60'}[s];
+    return {10:PAL.s10, 3:PAL.s3, 2:PAL.s2, 1:PAL.s1, 0:PAL.s0}[s];
   }
 
   function radiiForPoint(zone, dx, dy){
@@ -472,41 +611,42 @@
     svg.innerHTML = '';
     const ns = 'http://www.w3.org/2000/svg';
 
-    const defs = document.createElementNS(ns,'defs');
-    const pattern = document.createElementNS(ns,'pattern');
-    pattern.setAttribute('id','grassPat');
-    pattern.setAttribute('patternUnits','userSpaceOnUse');
-    pattern.setAttribute('width','8'); pattern.setAttribute('height','8');
-    [1.5,4,6.5].forEach(x=>{
-      const l = document.createElementNS(ns,'line');
-      l.setAttribute('x1',x); l.setAttribute('y1',0); l.setAttribute('x2',x); l.setAttribute('y2',8);
-      l.setAttribute('stroke','#5aaa20'); l.setAttribute('stroke-width','0.5'); l.setAttribute('opacity','0.18');
-      pattern.appendChild(l);
-    });
-    defs.appendChild(pattern);
-    svg.appendChild(defs);
-
     const bg = document.createElementNS(ns,'rect');
     bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
-    bg.setAttribute('fill','#f8f4ec');
+    bg.setAttribute('fill', PAL.paper);
     svg.appendChild(bg);
-    const bg2 = document.createElementNS(ns,'rect');
-    bg2.setAttribute('x',0); bg2.setAttribute('y',0); bg2.setAttribute('width',VB_W); bg2.setAttribute('height',VB_H);
-    bg2.setAttribute('fill','url(#grassPat)');
-    svg.appendChild(bg2);
+
+    // --- signature: midway sunburst radiating from the pole ---
+    const burst = document.createElementNS(ns,'g');
+    const rayCount = 24;
+    const rayLen = Math.max(VB_W, VB_H);
+    for (let i=0;i<rayCount;i++){
+      if (i % 2) continue;
+      const a0 = (i/rayCount) * Math.PI*2;
+      const a1 = ((i+1)/rayCount) * Math.PI*2;
+      const p = document.createElementNS(ns,'path');
+      p.setAttribute('d',
+        `M ${CX} ${CY} L ${CX + Math.cos(a0)*rayLen} ${CY + Math.sin(a0)*rayLen} `+
+        `L ${CX + Math.cos(a1)*rayLen} ${CY + Math.sin(a1)*rayLen} Z`);
+      p.setAttribute('fill', PAL.brass);
+      p.setAttribute('opacity','0.10');
+      burst.appendChild(p);
+    }
+    svg.appendChild(burst);
 
     [ [0,CY,VB_W,CY], [CX,0,CX,VB_H] ].forEach(coords=>{
       const l = document.createElementNS(ns,'line');
       l.setAttribute('x1',coords[0]); l.setAttribute('y1',coords[1]);
       l.setAttribute('x2',coords[2]); l.setAttribute('y2',coords[3]);
-      l.setAttribute('stroke','#b8a890'); l.setAttribute('stroke-width','0.7'); l.setAttribute('stroke-dasharray','4,3'); l.setAttribute('opacity','0.5');
+      l.setAttribute('stroke', PAL.ink); l.setAttribute('stroke-width','0.7');
+      l.setAttribute('stroke-dasharray','5,4'); l.setAttribute('opacity','0.28');
       svg.appendChild(l);
     });
 
     const zoneDefs = [
-      {radii:ZONE1, hex:'#b5651d', opacity:0.14},
-      {radii:ZONE2, hex:'#3d6b8a', opacity:0.16},
-      {radii:ZONE3, hex:'#3d6b35', opacity:0.35}
+      {radii:ZONE1, hex:PAL.s1, opacity:0.13},
+      {radii:ZONE2, hex:PAL.s2, opacity:0.15},
+      {radii:ZONE3, hex:PAL.s3, opacity:0.30}
     ];
     zoneDefs.forEach(zd=>{
       const p = document.createElementNS(ns,'path');
@@ -514,44 +654,44 @@
       p.setAttribute('fill', zd.hex);
       p.setAttribute('fill-opacity', zd.opacity);
       p.setAttribute('stroke', zd.hex);
-      p.setAttribute('stroke-width','1.4');
+      p.setAttribute('stroke-width','2.2');
       svg.appendChild(p);
     });
 
     const pole = document.createElementNS(ns,'circle');
-    pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',4);
-    pole.setAttribute('fill','#5a4a30'); pole.setAttribute('opacity','0.55');
+    pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6);
+    pole.setAttribute('fill', PAL.ink); pole.setAttribute('opacity','0.7');
     svg.appendChild(pole);
-    const poleLabel = document.createElementNS(ns,'text');
-    poleLabel.setAttribute('x',CX); poleLabel.setAttribute('y',CY-8);
-    poleLabel.setAttribute('text-anchor','middle');
-    poleLabel.setAttribute('font-size','7');
-    poleLabel.setAttribute('fill','#5a4a30');
-    poleLabel.setAttribute('opacity','0.6');
-    poleLabel.textContent = 'pole';
-    svg.appendChild(poleLabel);
 
+    // zone value numerals — faint, just enough to read
     const labels = [
-      {y: CY-ZONE1.top+14, t:'1'},
-      {y: CY-ZONE2.top+14, t:'2'},
-      {y: CY-ZONE3.top+13, t:'3'}
+      {y: CY-ZONE1.top+30, t:'1', hex:PAL.s1, size:26, op:0.30},
+      {y: CY-ZONE2.top+29, t:'2', hex:PAL.s2, size:25, op:0.30},
+      {y: CY-ZONE3.top+21, t:'3', hex:PAL.s3, size:26, op:0.34}
     ];
     labels.forEach(l=>{
       const t = document.createElementNS(ns,'text');
       t.setAttribute('x',CX); t.setAttribute('y',l.y);
       t.setAttribute('text-anchor','middle');
-      t.setAttribute('font-size','11');
-      t.setAttribute('fill','#4a3a20');
-      t.setAttribute('opacity','0.6');
+      t.setAttribute('font-family',"'Rye', serif");
+      t.setAttribute('font-size',l.size);
+      t.setAttribute('fill', l.hex);
+      t.setAttribute('opacity',l.op);
       t.textContent = l.t;
       svg.appendChild(t);
     });
 
-    const border = document.createElementNS(ns,'rect');
-    border.setAttribute('x',1.5); border.setAttribute('y',1.5);
-    border.setAttribute('width',VB_W-3); border.setAttribute('height',VB_H-3);
-    border.setAttribute('fill','none'); border.setAttribute('stroke','#b8a890'); border.setAttribute('stroke-width','2');
-    svg.appendChild(border);
+    // everything beyond the outer ring scores nothing
+    const oob = document.createElementNS(ns,'text');
+    oob.setAttribute('x', 11); oob.setAttribute('y', VB_H - 11);
+    oob.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    oob.setAttribute('font-size','10');
+    oob.setAttribute('font-weight','700');
+    oob.setAttribute('letter-spacing','1.6');
+    oob.setAttribute('fill', PAL.dust);
+    oob.setAttribute('opacity','0.85');
+    oob.textContent = 'OUT OF BOUNDS';
+    svg.appendChild(oob);
 
     svg.addEventListener('click', handleFieldTap);
   }
@@ -564,84 +704,129 @@
     const ns = 'http://www.w3.org/2000/svg';
 
     const bg = document.createElementNS(ns,'rect');
-    bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',STRIP_W); bg.setAttribute('height',STRIP_H);
-    bg.setAttribute('fill','#f8f4ec');
-    bg.setAttribute('stroke','#b8a890'); bg.setAttribute('stroke-width','2');
+    bg.setAttribute('x',0); bg.setAttribute('y',0);
+    bg.setAttribute('width',STRIP_W); bg.setAttribute('height',STRIP_H);
+    bg.setAttribute('fill', PAL.paper);
     svg.appendChild(bg);
 
-    const basketCircle = document.createElementNS(ns,'circle');
-    basketCircle.setAttribute('cx',BASKET_CX); basketCircle.setAttribute('cy',BASKET_CY); basketCircle.setAttribute('r',BASKET_R);
-    basketCircle.setAttribute('fill','#c9932a'); basketCircle.setAttribute('stroke','#8a6010'); basketCircle.setAttribute('stroke-width','2.5');
-    svg.appendChild(basketCircle);
+    // ---- prize medallion (basket make) ----
+    const ring = document.createElementNS(ns,'circle');
+    ring.setAttribute('cx',BASKET_CX); ring.setAttribute('cy',BASKET_CY);
+    ring.setAttribute('r',BASKET_R);
+    ring.setAttribute('fill', PAL.prize);
+    ring.setAttribute('stroke', PAL.brass);
+    ring.setAttribute('stroke-width','4');
+    svg.appendChild(ring);
+
+    const innerRing = document.createElementNS(ns,'circle');
+    innerRing.setAttribute('cx',BASKET_CX); innerRing.setAttribute('cy',BASKET_CY);
+    innerRing.setAttribute('r',BASKET_R-7);
+    innerRing.setAttribute('fill','none');
+    innerRing.setAttribute('stroke', PAL.brass);
+    innerRing.setAttribute('stroke-width','1');
+    innerRing.setAttribute('opacity','0.6');
+    svg.appendChild(innerRing);
+
     const basketLabel = document.createElementNS(ns,'text');
-    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+2);
+    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+3);
     basketLabel.setAttribute('text-anchor','middle');
-    basketLabel.setAttribute('font-size','22');
-    basketLabel.setAttribute('fill','#fff');
-    basketLabel.setAttribute('font-weight','700');
+    basketLabel.setAttribute('font-family',"'Rye', serif");
+    basketLabel.setAttribute('font-size','23');
+    basketLabel.setAttribute('fill', PAL.brass);
     basketLabel.textContent = '10';
     svg.appendChild(basketLabel);
+
     const basketSub = document.createElementNS(ns,'text');
-    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+17);
+    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+18);
     basketSub.setAttribute('text-anchor','middle');
-    basketSub.setAttribute('font-size','8');
-    basketSub.setAttribute('fill','#fff');
-    basketSub.setAttribute('letter-spacing','0.5');
-    basketSub.textContent = 'BASKET';
+    basketSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    basketSub.setAttribute('font-size','9');
+    basketSub.setAttribute('font-weight','700');
+    basketSub.setAttribute('letter-spacing','1.5');
+    basketSub.setAttribute('fill', PAL.paper);
+    basketSub.textContent = 'RINGER';
     svg.appendChild(basketSub);
 
-    // ---- CAN bonus button ----
-    const canRect = document.createElementNS(ns,'rect');
-    canRect.setAttribute('id','canBtn');
-    canRect.setAttribute('x', CAN_X); canRect.setAttribute('y', CAN_Y);
-    canRect.setAttribute('width', CAN_W); canRect.setAttribute('height', CAN_H);
-    canRect.setAttribute('rx', 8);
-    canRect.setAttribute('fill', 'none');
-    canRect.setAttribute('stroke', '#8a6010');
-    canRect.setAttribute('stroke-width','2.5');
-    canRect.setAttribute('stroke-dasharray','6,4');
-    svg.appendChild(canRect);
+    // ---- can knockoff: drawn as a tin can ----
+    const canL = CAN_X;
+    const canR = CAN_X + CAN_W;
+    const canCX = CAN_X + CAN_W/2;
+    const canRX = CAN_W/2;
+    const canTopY = CAN_Y + CAN_RY;
+    const canBotY = CAN_Y + CAN_H - CAN_RY;
 
+    // single silhouette: domed top, straight sides, domed bottom
+    const canBody = document.createElementNS(ns,'path');
+    canBody.setAttribute('id','canBtn');
+    canBody.setAttribute('d',
+      `M ${canL} ${canTopY} `+
+      `A ${canRX} ${CAN_RY} 0 0 1 ${canR} ${canTopY} `+
+      `L ${canR} ${canBotY} `+
+      `A ${canRX} ${CAN_RY} 0 0 1 ${canL} ${canBotY} `+
+      `Z`);
+    canBody.setAttribute('fill','none');
+    canBody.setAttribute('stroke', PAL.tent);
+    canBody.setAttribute('stroke-width','2.5');
+    canBody.setAttribute('stroke-dasharray','7,4');
+    svg.appendChild(canBody);
+
+    // lid rim — the front edge of the elliptical top
+    const canLid = document.createElementNS(ns,'path');
+    canLid.setAttribute('id','canLid');
+    canLid.setAttribute('d',
+      `M ${canL} ${canTopY} A ${canRX} ${CAN_RY} 0 0 0 ${canR} ${canTopY}`);
+    canLid.setAttribute('fill','none');
+    canLid.setAttribute('stroke', PAL.tent);
+    canLid.setAttribute('stroke-width','2.5');
+    canLid.setAttribute('stroke-dasharray','7,4');
+    svg.appendChild(canLid);
+
+    // label band across the can
     const canLabel = document.createElementNS(ns,'text');
     canLabel.setAttribute('id','canLabel');
-    canLabel.setAttribute('x', CAN_X + CAN_W/2); canLabel.setAttribute('y', CAN_Y + CAN_H/2 - 1);
+    canLabel.setAttribute('x', canCX); canLabel.setAttribute('y', CAN_Y + CAN_H/2 + 3);
     canLabel.setAttribute('text-anchor','middle');
-    canLabel.setAttribute('font-size','17');
-    canLabel.setAttribute('fill','#8a6010');
-    canLabel.setAttribute('font-weight','700');
+    canLabel.setAttribute('font-family',"'Rye', serif");
+    canLabel.setAttribute('font-size','16');
+    canLabel.setAttribute('fill', PAL.tent);
     canLabel.textContent = '+5';
     svg.appendChild(canLabel);
 
     const canSub = document.createElementNS(ns,'text');
     canSub.setAttribute('id','canSub');
-    canSub.setAttribute('x', CAN_X + CAN_W/2); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 14);
+    canSub.setAttribute('x', canCX); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 16);
     canSub.setAttribute('text-anchor','middle');
-    canSub.setAttribute('font-size','8');
-    canSub.setAttribute('fill','#8a6010');
-    canSub.setAttribute('letter-spacing','0.5');
+    canSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    canSub.setAttribute('font-size','9');
+    canSub.setAttribute('font-weight','700');
+    canSub.setAttribute('letter-spacing','1.5');
+    canSub.setAttribute('fill', PAL.tent);
     canSub.textContent = 'CAN';
     svg.appendChild(canSub);
 
-    // tally slots this station
+    // ---- ringer tally for this station ----
+    const tallyCaption = document.createElementNS(ns,'text');
+    tallyCaption.setAttribute('x', TALLY_X); tallyCaption.setAttribute('y', BASKET_CY - 17);
+    tallyCaption.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    tallyCaption.setAttribute('font-size','9');
+    tallyCaption.setAttribute('font-weight','700');
+    tallyCaption.setAttribute('letter-spacing','1.4');
+    tallyCaption.setAttribute('fill', PAL.dust);
+    tallyCaption.textContent = 'RINGERS HERE';
+    svg.appendChild(tallyCaption);
+
     for (let i=0;i<5;i++){
       const rect = document.createElementNS(ns,'rect');
       rect.setAttribute('id', 'tally-'+i);
       rect.setAttribute('x', TALLY_X + i*22);
       rect.setAttribute('y', BASKET_CY - 8);
       rect.setAttribute('width', 15); rect.setAttribute('height', 15);
-      rect.setAttribute('rx', 3);
+      rect.setAttribute('rx', 2);
       rect.setAttribute('fill', 'none');
-      rect.setAttribute('stroke', '#8a6010');
+      rect.setAttribute('stroke', PAL.ink);
       rect.setAttribute('stroke-width','1.5');
       svg.appendChild(rect);
     }
-    const tallyCaption = document.createElementNS(ns,'text');
-    tallyCaption.setAttribute('x', TALLY_X); tallyCaption.setAttribute('y', BASKET_CY - 16);
-    tallyCaption.setAttribute('font-size','8');
-    tallyCaption.setAttribute('fill','#7a6a50');
-    tallyCaption.setAttribute('letter-spacing','0.5');
-    tallyCaption.textContent = 'MAKES THIS STATION';
-    svg.appendChild(tallyCaption);
 
     svg.addEventListener('click', handleBasketTap);
   }
@@ -652,20 +837,25 @@
     for (let i=0;i<5;i++){
       const el = document.getElementById('tally-'+i);
       if (!el) continue;
-      el.setAttribute('fill', i < count ? '#c9932a' : 'none');
+      el.setAttribute('fill', i < count ? PAL.prize : 'none');
     }
-    // can bonus button reflects whether the most recent throw has it
+    // can reflects whether the most recent throw carries the bonus
     const last = list.length ? list[list.length-1] : null;
     const active = !!(last && last.bonus);
-    const btn = document.getElementById('canBtn');
+    const body = document.getElementById('canBtn');
+    const lid = document.getElementById('canLid');
     const lbl = document.getElementById('canLabel');
     const sub = document.getElementById('canSub');
-    if (btn){
-      btn.setAttribute('fill', active ? '#c9932a' : 'none');
-      btn.setAttribute('stroke-dasharray', active ? 'none' : '6,4');
+    if (body){
+      body.setAttribute('fill', active ? PAL.tent : 'none');
+      body.setAttribute('stroke-dasharray', active ? 'none' : '7,4');
     }
-    if (lbl) lbl.setAttribute('fill', active ? '#fff' : '#8a6010');
-    if (sub) sub.setAttribute('fill', active ? '#fff' : '#8a6010');
+    if (lid){
+      lid.setAttribute('stroke', active ? PAL.paper : PAL.tent);
+      lid.setAttribute('stroke-dasharray', active ? 'none' : '7,4');
+    }
+    if (lbl) lbl.setAttribute('fill', active ? PAL.paper : PAL.tent);
+    if (sub) sub.setAttribute('fill', active ? PAL.paper : PAL.tent);
   }
 
   function drawMarkers(){
@@ -685,14 +875,14 @@
       const c = document.createElementNS(ns,'circle');
       c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
       c.setAttribute('fill', colorForScore(t.score));
-      c.setAttribute('stroke', '#2c2416'); c.setAttribute('stroke-width','1');
+      c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity', showAll && t.station !== state.station ? '0.45' : '0.95');
       g.appendChild(c);
       const lbl = document.createElementNS(ns,'text');
       lbl.setAttribute('x', t.x); lbl.setAttribute('y', t.y+2.4);
       lbl.setAttribute('text-anchor','middle');
-      lbl.setAttribute('font-size','5.5');
-      lbl.setAttribute('fill','#fff');
+      lbl.setAttribute('font-family',"'Saira Condensed', sans-serif"); lbl.setAttribute('font-size','6');
+      lbl.setAttribute('fill', PAL.paper);
       lbl.setAttribute('font-weight','700');
       lbl.textContent = t.throw;
       g.appendChild(lbl);
@@ -885,14 +1075,14 @@
       const c = document.createElementNS(ns,'circle');
       c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
       c.setAttribute('fill', colorForScore(t.score));
-      c.setAttribute('stroke', '#2c2416'); c.setAttribute('stroke-width','1');
+      c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity','0.85');
       g.appendChild(c);
       const lbl = document.createElementNS(ns,'text');
       lbl.setAttribute('x', t.x); lbl.setAttribute('y', t.y+2.4);
       lbl.setAttribute('text-anchor','middle');
-      lbl.setAttribute('font-size','5');
-      lbl.setAttribute('fill','#fff');
+      lbl.setAttribute('font-family',"'Saira Condensed', sans-serif"); lbl.setAttribute('font-size','5.5');
+      lbl.setAttribute('fill', PAL.paper);
       lbl.setAttribute('font-weight','700');
       lbl.textContent = t.station + '.' + t.throw;
       g.appendChild(lbl);
@@ -903,8 +1093,8 @@
     const bc = document.createElementNS(ns,'text');
     bc.setAttribute('x', VB_W/2); bc.setAttribute('y', VB_H - 10);
     bc.setAttribute('text-anchor','middle');
-    bc.setAttribute('font-size','10');
-    bc.setAttribute('fill','#5a4a30');
+    bc.setAttribute('font-family',"'Saira Condensed', sans-serif"); bc.setAttribute('font-size','10');
+    bc.setAttribute('fill', PAL.dust);
     bc.textContent = basketCount + ' basket makes this round (not shown spatially)';
     clone.appendChild(bc);
 
@@ -917,7 +1107,7 @@
       const canvas = document.createElement('canvas');
       canvas.width = 1000; canvas.height = Math.round(1000 * VB_H/VB_W);
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#f8f4ec';
+      ctx.fillStyle = PAL.paper;
       ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.drawImage(img,0,0,canvas.width,canvas.height);
       canvas.toBlob(function(blob){
