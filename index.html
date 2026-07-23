@@ -223,7 +223,7 @@
   .basket-wrap{display:flex; justify-content:center; margin-bottom:12px;}
   #basketStrip{
     width:100%;
-    aspect-ratio:315/120;
+    aspect-ratio:315/134;
     touch-action:none;
     cursor:pointer;
     display:block;
@@ -317,6 +317,12 @@
     font-size:0.72rem;
     margin-right:3px;
     border:1.5px solid var(--ink);
+  }
+  .line-tick{
+    font-size:0.5rem;
+    vertical-align:super;
+    margin-left:1px;
+    opacity:0.9;
   }
   .score-pill.bonus-pill{
     background:var(--paper);
@@ -461,7 +467,7 @@
   <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Tap where the disc landed, or tap the medallion if it went in. For a can knockoff, log the throw first, then tap +5 CAN to attach the bonus.</p>
+<p class="target-hint">Press and hold on the field to open the lens, slide to the exact spot, then lift to plot. Discs touching a line round up automatically &mdash; tap ON LINE to correct a call. Tap the medallion for a ringer, +5 CAN for a knockoff.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
 
 </div>
@@ -481,17 +487,28 @@
 
   // basket strip (below the field, full width, short height)
   const STRIP_W = VB_W;
-  const STRIP_H = 120;
-  const BASKET_CX = 62;
-  const BASKET_CY = STRIP_H/2;
-  const BASKET_R = 42;
-  const CAN_W = 58;
-  const CAN_H = 68;
-  const CAN_RY = 8;
-  const CAN_X = BASKET_CX + BASKET_R + 16;
+  const STRIP_H = 134;
+  const BASKET_CX = 52;
+  const BASKET_CY = 50;
+  const BASKET_R = 36;
+  const CAN_W = 50;
+  const CAN_H = 66;
+  const CAN_RY = 7;
+  const CAN_X = 104;
   const CAN_Y = BASKET_CY - CAN_H/2;
-  const TALLY_X = CAN_X + CAN_W + 20;
+  const LINE_X = 172;
+  const LINE_W = 130;
+  const LINE_H = 66;
+  const LINE_Y = BASKET_CY - LINE_H/2;
+  const TALLY_X = 10;
+  const TALLY_Y = 104;
   const CAN_BONUS = 5;
+
+  // loupe (magnifier) geometry
+  const LOUPE_R = 52;
+  const LOUPE_ZOOM = 3.4;
+  const LOUPE_OFFSET = 78;
+  const DISC_R = 4.25;   // inches — footprint of a disc lying flat
 
   const PAL = {
     tent:'#6E1417',
@@ -633,10 +650,27 @@
     svg.innerHTML = '';
     const ns = 'http://www.w3.org/2000/svg';
 
+    // defs: clip for the loupe
+    const defs = document.createElementNS(ns,'defs');
+    const clip = document.createElementNS(ns,'clipPath');
+    clip.setAttribute('id','loupeClip');
+    const clipC = document.createElementNS(ns,'circle');
+    clipC.setAttribute('id','loupeClipCircle');
+    clipC.setAttribute('cx', 0); clipC.setAttribute('cy', 0);
+    clipC.setAttribute('r', LOUPE_R);
+    clip.appendChild(clipC);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    // everything the loupe magnifies lives in #scene
+    const scene = document.createElementNS(ns,'g');
+    scene.setAttribute('id','scene');
+    svg.appendChild(scene);
+
     const bg = document.createElementNS(ns,'rect');
     bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
     bg.setAttribute('fill', PAL.paper);
-    svg.appendChild(bg);
+    scene.appendChild(bg);
 
     // --- signature: midway sunburst radiating from the pole ---
     const burst = document.createElementNS(ns,'g');
@@ -654,7 +688,7 @@
       p.setAttribute('opacity','0.10');
       burst.appendChild(p);
     }
-    svg.appendChild(burst);
+    scene.appendChild(burst);
 
     [ [0,CY,VB_W,CY], [CX,0,CX,VB_H] ].forEach(coords=>{
       const l = document.createElementNS(ns,'line');
@@ -662,7 +696,7 @@
       l.setAttribute('x2',coords[2]); l.setAttribute('y2',coords[3]);
       l.setAttribute('stroke', PAL.ink); l.setAttribute('stroke-width','0.7');
       l.setAttribute('stroke-dasharray','5,4'); l.setAttribute('opacity','0.28');
-      svg.appendChild(l);
+      scene.appendChild(l);
     });
 
     const zoneDefs = [
@@ -677,13 +711,13 @@
       p.setAttribute('fill-opacity', zd.opacity);
       p.setAttribute('stroke', zd.hex);
       p.setAttribute('stroke-width','2.2');
-      svg.appendChild(p);
+      scene.appendChild(p);
     });
 
     const pole = document.createElementNS(ns,'circle');
     pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6);
     pole.setAttribute('fill', PAL.ink); pole.setAttribute('opacity','0.7');
-    svg.appendChild(pole);
+    scene.appendChild(pole);
 
     // zone value numerals — faint, just enough to read
     const labels = [
@@ -700,7 +734,7 @@
       t.setAttribute('fill', l.hex);
       t.setAttribute('opacity',l.op);
       t.textContent = l.t;
-      svg.appendChild(t);
+      scene.appendChild(t);
     });
 
     // everything beyond the outer ring scores nothing
@@ -713,9 +747,82 @@
     oob.setAttribute('fill', PAL.dust);
     oob.setAttribute('opacity','0.85');
     oob.textContent = 'OUT OF BOUNDS';
-    svg.appendChild(oob);
+    scene.appendChild(oob);
 
-    svg.addEventListener('click', handleFieldTap);
+    buildLoupe(svg, ns);
+
+    svg.addEventListener('pointerdown', onFieldPointerDown);
+    svg.addEventListener('pointermove', onFieldPointerMove);
+    svg.addEventListener('pointerup', onFieldPointerUp);
+    svg.addEventListener('pointercancel', onFieldPointerCancel);
+  }
+
+  function buildLoupe(svg, ns){
+    const loupe = document.createElementNS(ns,'g');
+    loupe.setAttribute('id','loupeGroup');
+    loupe.setAttribute('pointer-events','none');
+    loupe.style.display = 'none';
+
+    // magnified content, clipped to the loupe circle
+    const clipped = document.createElementNS(ns,'g');
+    clipped.setAttribute('clip-path','url(#loupeClip)');
+
+    const lbg = document.createElementNS(ns,'rect');
+    lbg.setAttribute('x',0); lbg.setAttribute('y',0);
+    lbg.setAttribute('width',VB_W); lbg.setAttribute('height',VB_H);
+    lbg.setAttribute('fill', PAL.paper);
+    clipped.appendChild(lbg);
+
+    const use = document.createElementNS(ns,'use');
+    use.setAttribute('id','loupeUse');
+    use.setAttribute('href','#scene');
+    use.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#scene');
+    clipped.appendChild(use);
+    loupe.appendChild(clipped);
+
+    // brass bezel
+    const ring = document.createElementNS(ns,'circle');
+    ring.setAttribute('id','loupeRing');
+    ring.setAttribute('r', LOUPE_R);
+    ring.setAttribute('fill','none');
+    ring.setAttribute('stroke', PAL.ink);
+    ring.setAttribute('stroke-width','3');
+    loupe.appendChild(ring);
+    const ring2 = document.createElementNS(ns,'circle');
+    ring2.setAttribute('id','loupeRing2');
+    ring2.setAttribute('r', LOUPE_R-3);
+    ring2.setAttribute('fill','none');
+    ring2.setAttribute('stroke', PAL.brass);
+    ring2.setAttribute('stroke-width','1.6');
+    loupe.appendChild(ring2);
+
+    // crosshair at the loupe centre = exact plot point
+    ['loupeCrossH','loupeCrossV'].forEach(id=>{
+      const l = document.createElementNS(ns,'line');
+      l.setAttribute('id',id);
+      l.setAttribute('stroke', PAL.ink);
+      l.setAttribute('stroke-width','1.2');
+      l.setAttribute('opacity','0.85');
+      loupe.appendChild(l);
+    });
+
+    // live score readout
+    const badge = document.createElementNS(ns,'circle');
+    badge.setAttribute('id','loupeBadge');
+    badge.setAttribute('r', 13);
+    badge.setAttribute('stroke', PAL.ink);
+    badge.setAttribute('stroke-width','2');
+    loupe.appendChild(badge);
+    const badgeTxt = document.createElementNS(ns,'text');
+    badgeTxt.setAttribute('id','loupeBadgeText');
+    badgeTxt.setAttribute('text-anchor','middle');
+    badgeTxt.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    badgeTxt.setAttribute('font-size','15');
+    badgeTxt.setAttribute('font-weight','900');
+    badgeTxt.setAttribute('fill', PAL.paper);
+    loupe.appendChild(badgeTxt);
+
+    svg.appendChild(loupe);
   }
 
   function buildBasketStrip(){
@@ -731,7 +838,7 @@
     bg.setAttribute('fill', PAL.paper);
     svg.appendChild(bg);
 
-    // ---- prize medallion (basket make) ----
+    // ---- prize medallion (ringer) ----
     const ring = document.createElementNS(ns,'circle');
     ring.setAttribute('cx',BASKET_CX); ring.setAttribute('cy',BASKET_CY);
     ring.setAttribute('r',BASKET_R);
@@ -742,7 +849,7 @@
 
     const innerRing = document.createElementNS(ns,'circle');
     innerRing.setAttribute('cx',BASKET_CX); innerRing.setAttribute('cy',BASKET_CY);
-    innerRing.setAttribute('r',BASKET_R-7);
+    innerRing.setAttribute('r',BASKET_R-6);
     innerRing.setAttribute('fill','none');
     innerRing.setAttribute('stroke', PAL.brass);
     innerRing.setAttribute('stroke-width','1');
@@ -750,24 +857,38 @@
     svg.appendChild(innerRing);
 
     const basketLabel = document.createElementNS(ns,'text');
-    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+3);
+    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+2);
     basketLabel.setAttribute('text-anchor','middle');
     basketLabel.setAttribute('font-family',"'Rye', serif");
-    basketLabel.setAttribute('font-size','23');
+    basketLabel.setAttribute('font-size','20');
     basketLabel.setAttribute('fill', PAL.brass);
     basketLabel.textContent = '10';
     svg.appendChild(basketLabel);
 
     const basketSub = document.createElementNS(ns,'text');
-    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+18);
+    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+16);
     basketSub.setAttribute('text-anchor','middle');
     basketSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    basketSub.setAttribute('font-size','9');
+    basketSub.setAttribute('font-size','8.5');
     basketSub.setAttribute('font-weight','700');
-    basketSub.setAttribute('letter-spacing','1.5');
+    basketSub.setAttribute('letter-spacing','1.4');
     basketSub.setAttribute('fill', PAL.paper);
     basketSub.textContent = 'RINGER';
     svg.appendChild(basketSub);
+
+    // ---- ringer tally, tucked under the medallion ----
+    for (let i=0;i<5;i++){
+      const rect = document.createElementNS(ns,'rect');
+      rect.setAttribute('id', 'tally-'+i);
+      rect.setAttribute('x', TALLY_X + i*17);
+      rect.setAttribute('y', TALLY_Y);
+      rect.setAttribute('width', 12); rect.setAttribute('height', 12);
+      rect.setAttribute('rx', 2);
+      rect.setAttribute('fill', 'none');
+      rect.setAttribute('stroke', PAL.ink);
+      rect.setAttribute('stroke-width','1.4');
+      svg.appendChild(rect);
+    }
 
     // ---- can knockoff: drawn as a tin can ----
     const canL = CAN_X;
@@ -777,7 +898,6 @@
     const canTopY = CAN_Y + CAN_RY;
     const canBotY = CAN_Y + CAN_H - CAN_RY;
 
-    // single silhouette: domed top, straight sides, domed bottom
     const canBody = document.createElementNS(ns,'path');
     canBody.setAttribute('id','canBtn');
     canBody.setAttribute('d',
@@ -792,7 +912,6 @@
     canBody.setAttribute('stroke-dasharray','7,4');
     svg.appendChild(canBody);
 
-    // lid rim — the front edge of the elliptical top
     const canLid = document.createElementNS(ns,'path');
     canLid.setAttribute('id','canLid');
     canLid.setAttribute('d',
@@ -803,52 +922,77 @@
     canLid.setAttribute('stroke-dasharray','7,4');
     svg.appendChild(canLid);
 
-    // label band across the can
     const canLabel = document.createElementNS(ns,'text');
     canLabel.setAttribute('id','canLabel');
-    canLabel.setAttribute('x', canCX); canLabel.setAttribute('y', CAN_Y + CAN_H/2 + 3);
+    canLabel.setAttribute('x', canCX); canLabel.setAttribute('y', CAN_Y + CAN_H/2 + 2);
     canLabel.setAttribute('text-anchor','middle');
     canLabel.setAttribute('font-family',"'Rye', serif");
-    canLabel.setAttribute('font-size','16');
+    canLabel.setAttribute('font-size','15');
     canLabel.setAttribute('fill', PAL.tent);
     canLabel.textContent = '+5';
     svg.appendChild(canLabel);
 
     const canSub = document.createElementNS(ns,'text');
     canSub.setAttribute('id','canSub');
-    canSub.setAttribute('x', canCX); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 16);
+    canSub.setAttribute('x', canCX); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 15);
     canSub.setAttribute('text-anchor','middle');
     canSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    canSub.setAttribute('font-size','9');
+    canSub.setAttribute('font-size','8.5');
     canSub.setAttribute('font-weight','700');
-    canSub.setAttribute('letter-spacing','1.5');
+    canSub.setAttribute('letter-spacing','1.4');
     canSub.setAttribute('fill', PAL.tent);
     canSub.textContent = 'CAN';
     svg.appendChild(canSub);
 
-    // ---- ringer tally for this station ----
-    const tallyCaption = document.createElementNS(ns,'text');
-    tallyCaption.setAttribute('x', TALLY_X); tallyCaption.setAttribute('y', BASKET_CY - 17);
-    tallyCaption.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    tallyCaption.setAttribute('font-size','9');
-    tallyCaption.setAttribute('font-weight','700');
-    tallyCaption.setAttribute('letter-spacing','1.4');
-    tallyCaption.setAttribute('fill', PAL.dust);
-    tallyCaption.textContent = 'RINGERS HERE';
-    svg.appendChild(tallyCaption);
+    // ---- on-the-line override ----
+    const lineBox = document.createElementNS(ns,'rect');
+    lineBox.setAttribute('id','lineBtn');
+    lineBox.setAttribute('x', LINE_X); lineBox.setAttribute('y', LINE_Y);
+    lineBox.setAttribute('width', LINE_W); lineBox.setAttribute('height', LINE_H);
+    lineBox.setAttribute('rx', 3);
+    lineBox.setAttribute('fill','none');
+    lineBox.setAttribute('stroke', PAL.teal);
+    lineBox.setAttribute('stroke-width','2.5');
+    lineBox.setAttribute('stroke-dasharray','7,4');
+    svg.appendChild(lineBox);
 
-    for (let i=0;i<5;i++){
-      const rect = document.createElementNS(ns,'rect');
-      rect.setAttribute('id', 'tally-'+i);
-      rect.setAttribute('x', TALLY_X + i*22);
-      rect.setAttribute('y', BASKET_CY - 8);
-      rect.setAttribute('width', 15); rect.setAttribute('height', 15);
-      rect.setAttribute('rx', 2);
-      rect.setAttribute('fill', 'none');
-      rect.setAttribute('stroke', PAL.ink);
-      rect.setAttribute('stroke-width','1.5');
-      svg.appendChild(rect);
-    }
+    // a disc sitting astride a boundary
+    const bx = LINE_X + 26, by = LINE_Y + 26;
+    const boundary = document.createElementNS(ns,'path');
+    boundary.setAttribute('id','lineArc');
+    boundary.setAttribute('d', `M ${bx-19} ${by+13} Q ${bx} ${by-15} ${bx+19} ${by+13}`);
+    boundary.setAttribute('fill','none');
+    boundary.setAttribute('stroke', PAL.teal);
+    boundary.setAttribute('stroke-width','2');
+    svg.appendChild(boundary);
+    const straddler = document.createElementNS(ns,'circle');
+    straddler.setAttribute('id','lineDisc');
+    straddler.setAttribute('cx', bx); straddler.setAttribute('cy', by-8);
+    straddler.setAttribute('r', 8);
+    straddler.setAttribute('fill', PAL.paper);
+    straddler.setAttribute('stroke', PAL.teal);
+    straddler.setAttribute('stroke-width','2');
+    svg.appendChild(straddler);
+
+    const lineLabel = document.createElementNS(ns,'text');
+    lineLabel.setAttribute('id','lineLabel');
+    lineLabel.setAttribute('x', LINE_X + 58); lineLabel.setAttribute('y', LINE_Y + 28);
+    lineLabel.setAttribute('font-family',"'Rye', serif");
+    lineLabel.setAttribute('font-size','13');
+    lineLabel.setAttribute('fill', PAL.teal);
+    lineLabel.textContent = 'ON LINE';
+    svg.appendChild(lineLabel);
+
+    const lineSub = document.createElementNS(ns,'text');
+    lineSub.setAttribute('id','lineSub');
+    lineSub.setAttribute('x', LINE_X + 58); lineSub.setAttribute('y', LINE_Y + 43);
+    lineSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    lineSub.setAttribute('font-size','8.5');
+    lineSub.setAttribute('font-weight','700');
+    lineSub.setAttribute('letter-spacing','1.2');
+    lineSub.setAttribute('fill', PAL.teal);
+    lineSub.textContent = 'ROUNDS UP';
+    svg.appendChild(lineSub);
 
     svg.addEventListener('click', handleBasketTap);
   }
@@ -861,33 +1005,54 @@
       if (!el) continue;
       el.setAttribute('fill', i < count ? PAL.prize : 'none');
     }
-    // can reflects whether the most recent throw carries the bonus
+
     const last = list.length ? list[list.length-1] : null;
-    const active = !!(last && last.bonus);
+
+    // can
+    const canOn = !!(last && last.bonus);
     const body = document.getElementById('canBtn');
     const lid = document.getElementById('canLid');
-    const lbl = document.getElementById('canLabel');
-    const sub = document.getElementById('canSub');
+    const cl = document.getElementById('canLabel');
+    const cs = document.getElementById('canSub');
     if (body){
-      body.setAttribute('fill', active ? PAL.tent : 'none');
-      body.setAttribute('stroke-dasharray', active ? 'none' : '7,4');
+      body.setAttribute('fill', canOn ? PAL.tent : 'none');
+      body.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
     }
     if (lid){
-      lid.setAttribute('stroke', active ? PAL.paper : PAL.tent);
-      lid.setAttribute('stroke-dasharray', active ? 'none' : '7,4');
+      lid.setAttribute('stroke', canOn ? PAL.paper : PAL.tent);
+      lid.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
     }
-    if (lbl) lbl.setAttribute('fill', active ? PAL.paper : PAL.tent);
-    if (sub) sub.setAttribute('fill', active ? PAL.paper : PAL.tent);
+    if (cl) cl.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
+    if (cs) cs.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
+
+    // on-the-line
+    const lineOn = !!(last && last.line);
+    const lb = document.getElementById('lineBtn');
+    const arc = document.getElementById('lineArc');
+    const disc = document.getElementById('lineDisc');
+    const ll = document.getElementById('lineLabel');
+    const ls = document.getElementById('lineSub');
+    if (lb){
+      lb.setAttribute('fill', lineOn ? PAL.teal : 'none');
+      lb.setAttribute('stroke-dasharray', lineOn ? 'none' : '7,4');
+    }
+    if (arc) arc.setAttribute('stroke', lineOn ? PAL.paper : PAL.teal);
+    if (disc){
+      disc.setAttribute('fill', lineOn ? PAL.teal : PAL.paper);
+      disc.setAttribute('stroke', lineOn ? PAL.paper : PAL.teal);
+    }
+    if (ll) ll.setAttribute('fill', lineOn ? PAL.paper : PAL.teal);
+    if (ls) ls.setAttribute('fill', lineOn ? PAL.paper : PAL.teal);
   }
 
   function drawMarkers(){
-    const svg = document.getElementById('target');
+    const scene = document.getElementById('scene');
     let g = document.getElementById('markerGroup');
     if (g) g.remove();
     const ns = 'http://www.w3.org/2000/svg';
     g = document.createElementNS(ns,'g');
     g.setAttribute('id','markerGroup');
-    svg.appendChild(g);
+    if (scene) scene.appendChild(g);
 
     const showAll = document.getElementById('showAllToggle').checked;
     const list = showAll ? state.throws.filter(t=>t.round===state.round) : throwsForStation(state.station);
@@ -896,7 +1061,7 @@
       if (t.x === null || t.y === null) return;
       const c = document.createElementNS(ns,'circle');
       c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', colorForScore(t.score));
+      c.setAttribute('fill', colorForScore(effectiveScore(t)));
       c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity', showAll && t.station !== state.station ? '0.45' : '0.95');
       g.appendChild(c);
@@ -915,28 +1080,138 @@
     return throwsForStation(state.station).length >= 5;
   }
 
-  function logThrow(score, x, y){
+  function logThrow(score, x, y, line){
     if (currentStationFull()) return;
     if (state.round === null || state.round === '') {
-      flashStationSummary('Enter a round number above first.');
+      flashStationSummary('Enter a round number first.');
       return;
     }
     const throwNum = throwsForStation(state.station).length + 1;
     stampNow(state.round);
-    state.throws.push({ round: state.round, station: state.station, throw: throwNum, x, y, score, bonus: 0 });
+    state.throws.push({
+      round: state.round, station: state.station, throw: throwNum,
+      x, y, score, line: !!line, bonus: 0
+    });
     saveState();
     render();
   }
 
-  function handleFieldTap(evt){
+  // --- straddle rule: a disc touching a line takes the higher value ---
+  function nextTier(score){
+    return {0:1, 1:2, 2:3, 3:3, 10:10}[score];
+  }
+
+  // does a disc centred here physically overlap a higher-scoring zone?
+  function straddlesLine(x, y){
+    const dx = x - CX, dy = y - CY;
+    const base = scoreForPoint(dx, dy);
+    if (base === 3) return false;
+    const d = Math.hypot(dx, dy);
+    if (d < 0.001) return false;
+    const ux = -dx/d, uy = -dy/d;  // unit vector toward the pole
+    const inner = scoreForPoint(dx + ux*DISC_R, dy + uy*DISC_R);
+    return inner > base;
+  }
+
+  function effectiveScore(t){
+    return t.line ? nextTier(t.score) : t.score;
+  }
+
+  function throwPoints(t){
+    return effectiveScore(t) + (t.bonus || 0);
+  }
+
+  // --- loupe-driven plotting ---
+  let loupePointerId = null;
+
+  function fieldPoint(evt){
     const svg = document.getElementById('target');
     const rect = svg.getBoundingClientRect();
-    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
-    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-    const x = (clientX - rect.left) / rect.width * VB_W;
-    const y = (clientY - rect.top) / rect.height * VB_H;
-    const score = scoreForPoint(x - CX, y - CY);
-    logThrow(score, Math.round(x*10)/10, Math.round(y*10)/10);
+    return {
+      x: (evt.clientX - rect.left) / rect.width * VB_W,
+      y: (evt.clientY - rect.top) / rect.height * VB_H
+    };
+  }
+
+  function updateLoupe(px, py){
+    const g = document.getElementById('loupeGroup');
+    if (!g) return;
+    g.style.display = '';
+
+    // keep the lens on-canvas, and above the finger when there's room
+    const lx = Math.min(Math.max(px, LOUPE_R + 3), VB_W - LOUPE_R - 3);
+    let ly = py - LOUPE_OFFSET;
+    if (ly < LOUPE_R + 3) ly = py + LOUPE_OFFSET;
+    ly = Math.min(Math.max(ly, LOUPE_R + 3), VB_H - LOUPE_R - 3);
+
+    document.getElementById('loupeClipCircle').setAttribute('cx', lx);
+    document.getElementById('loupeClipCircle').setAttribute('cy', ly);
+    document.getElementById('loupeUse').setAttribute('transform',
+      `translate(${lx - LOUPE_ZOOM*px} ${ly - LOUPE_ZOOM*py}) scale(${LOUPE_ZOOM})`);
+
+    [['loupeRing',LOUPE_R], ['loupeRing2',LOUPE_R-3]].forEach(([id])=>{
+      const el = document.getElementById(id);
+      el.setAttribute('cx', lx); el.setAttribute('cy', ly);
+    });
+
+    const h = document.getElementById('loupeCrossH');
+    h.setAttribute('x1', lx-11); h.setAttribute('y1', ly);
+    h.setAttribute('x2', lx+11); h.setAttribute('y2', ly);
+    const v = document.getElementById('loupeCrossV');
+    v.setAttribute('x1', lx); v.setAttribute('y1', ly-11);
+    v.setAttribute('x2', lx); v.setAttribute('y2', ly+11);
+
+    const raw = scoreForPoint(px - CX, py - CY);
+    const onLine = straddlesLine(px, py);
+    const shown = onLine ? nextTier(raw) : raw;
+    const badge = document.getElementById('loupeBadge');
+    badge.setAttribute('cx', lx); badge.setAttribute('cy', ly - LOUPE_R - 4);
+    badge.setAttribute('fill', colorForScore(shown));
+    const txt = document.getElementById('loupeBadgeText');
+    txt.setAttribute('x', lx); txt.setAttribute('y', ly - LOUPE_R + 1);
+    txt.textContent = onLine ? shown + '\\u2191' : shown;
+  }
+
+  function hideLoupe(){
+    const g = document.getElementById('loupeGroup');
+    if (g) g.style.display = 'none';
+  }
+
+  function onFieldPointerDown(evt){
+    if (currentStationFull()) return;
+    if (state.round === null || state.round === '') {
+      flashStationSummary('Enter a round number first.');
+      return;
+    }
+    evt.preventDefault();
+    loupePointerId = evt.pointerId;
+    try { evt.target.setPointerCapture(evt.pointerId); } catch(e){}
+    const p = fieldPoint(evt);
+    updateLoupe(p.x, p.y);
+  }
+
+  function onFieldPointerMove(evt){
+    if (loupePointerId === null || evt.pointerId !== loupePointerId) return;
+    evt.preventDefault();
+    const p = fieldPoint(evt);
+    updateLoupe(p.x, p.y);
+  }
+
+  function onFieldPointerUp(evt){
+    if (loupePointerId === null || evt.pointerId !== loupePointerId) return;
+    evt.preventDefault();
+    loupePointerId = null;
+    hideLoupe();
+    const p = fieldPoint(evt);
+    const raw = scoreForPoint(p.x - CX, p.y - CY);
+    logThrow(raw, Math.round(p.x*10)/10, Math.round(p.y*10)/10, straddlesLine(p.x, p.y));
+  }
+
+  function onFieldPointerCancel(evt){
+    if (loupePointerId !== null && evt.pointerId === loupePointerId){
+      loupePointerId = null;
+      hideLoupe();
+    }
   }
 
   function handleBasketTap(evt){
@@ -949,12 +1224,36 @@
 
     const dist = Math.hypot(x - BASKET_CX, y - BASKET_CY);
     if (dist <= BASKET_R){
-      logThrow(10, null, null);
+      logThrow(10, null, null, false);
       return;
     }
     if (x >= CAN_X && x <= CAN_X + CAN_W && y >= CAN_Y && y <= CAN_Y + CAN_H){
       toggleCanBonus();
+      return;
     }
+    if (x >= LINE_X && x <= LINE_X + LINE_W && y >= LINE_Y && y <= LINE_Y + LINE_H){
+      toggleLineCall();
+    }
+  }
+
+  function toggleLineCall(){
+    const list = throwsForStation(state.station);
+    if (list.length === 0){
+      flashStationSummary('Log the throw first, then call it on the line.');
+      return;
+    }
+    const last = list[list.length - 1];
+    if (last.x === null){
+      flashStationSummary('A ringer is already the top score.');
+      return;
+    }
+    if (last.score === 3 && !last.line){
+      flashStationSummary('Already scoring 3 — nothing above it on the ground.');
+      return;
+    }
+    last.line = !last.line;
+    saveState();
+    render();
   }
 
   function toggleCanBonus(){
@@ -969,9 +1268,6 @@
     render();
   }
 
-  function throwPoints(t){
-    return t.score + (t.bonus || 0);
-  }
 
   function flashStationSummary(msg){
     const el = document.getElementById('stationSummary');
@@ -1043,7 +1339,9 @@
       const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
       grand += subtotal;
       const pills = list.map(t=>{
-        const base = `<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`;
+        const eff = effectiveScore(t);
+        const mark = t.line ? '<span class="line-tick">&#9650;</span>' : '';
+        const base = `<span class="score-pill" style="background:${colorForScore(eff)}">${eff}${mark}</span>`;
         return t.bonus ? base + `<span class="score-pill bonus-pill">+${t.bonus}</span>` : base;
       }).join('');
       rows += `<tr><td>${st}</td><td>${pills}</td><td style="text-align:right; font-weight:700;">${subtotal}</td></tr>`;
@@ -1065,15 +1363,18 @@
   }
 
   function toCSV(){
-    const header = 'date,time,round,station,throw,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
+    const header = 'date,time,round,station,throw,plotted_score,on_line,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
+      const eff = effectiveScore(t);
+      const onLine = t.line ? 1 : 0;
       const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
       const stamp = `${m.date || ''},${m.time || ''}`;
-      if (t.x === null || t.y === null) return `${stamp},${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},,`;
+      const core = `${stamp},${t.round},${t.station},${t.throw},${t.score},${onLine},${eff},${bonus},${eff+bonus}`;
+      if (t.x === null || t.y === null) return `${core},,`;
       const dx = Math.round((t.x - CX)*10)/10;
       const dyUp = Math.round((CY - t.y)*10)/10;
-      return `${stamp},${t.round},${t.station},${t.throw},${t.score},${bonus},${t.score+bonus},${dx},${dyUp}`;
+      return `${core},${dx},${dyUp}`;
     }).join('\n');
     return header + rows;
   }
@@ -1092,6 +1393,8 @@
   function exportImage(){
     const svg = document.getElementById('target');
     const clone = svg.cloneNode(true);
+    const lp = clone.querySelector('#loupeGroup');
+    if (lp) lp.remove();
     const oldG = clone.querySelector('#markerGroup');
     if (oldG) oldG.remove();
     const ns = 'http://www.w3.org/2000/svg';
@@ -1099,7 +1402,7 @@
     state.throws.filter(t=>t.round===state.round && t.x!==null).forEach(t=>{
       const c = document.createElementNS(ns,'circle');
       c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', colorForScore(t.score));
+      c.setAttribute('fill', colorForScore(effectiveScore(t)));
       c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity','0.85');
       g.appendChild(c);
