@@ -270,6 +270,13 @@
   .toggle input{width:17px; height:17px; accent-color:var(--brass);}
 
   /* ---- station summary ---- */
+  .align-note{
+    font-size:0.72rem;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--brass);
+  }
   .station-summary{
     text-align:center;
     font-size:0.86rem;
@@ -449,6 +456,11 @@
   <label class="toggle"><input type="checkbox" id="showAllToggle"> Show all shots</label>
 </div>
 
+<div class="action-row">
+  <label class="toggle"><input type="checkbox" id="alignToggle" checked> Align map to my throw</label>
+  <span class="align-note" id="alignNote"></span>
+</div>
+
 <div class="basket-wrap">
   <svg id="basketStrip" xmlns="http://www.w3.org/2000/svg"></svg>
 </div>
@@ -467,7 +479,7 @@
   <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Press and hold on the field to open the lens, slide to the exact spot, then lift to plot. Discs touching a line round up automatically &mdash; tap ON LINE to correct a call. Tap the medallion for a ringer, +5 CAN for a knockoff.</p>
+<p class="target-hint">Press and hold to open the lens, slide to the exact spot, then lift to plot. With the map aligned, you are standing at the bottom marker and throwing up the screen &mdash; so long is up, short is down, and left is left. Discs touching a line round up automatically; tap ON LINE to correct a call.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
 
 </div>
@@ -504,10 +516,21 @@
   const TALLY_Y = 104;
   const CAN_BONUS = 5;
 
+  // station geometry, measured off the aerial (0.1001 ft/px)
+  // bearing = compass direction you throw, station -> basket
+  const STATIONS = {
+    1:{bearing:246, dist:53}, 2:{bearing:184, dist:47}, 3:{bearing:207, dist:59},
+    4:{bearing:210, dist:84}, 5:{bearing:168, dist:77}, 6:{bearing:123, dist:68},
+    7:{bearing:56,  dist:52}, 8:{bearing:359, dist:71}, 9:{bearing:313, dist:104},
+    10:{bearing:302, dist:90}, 11:{bearing:281, dist:71}
+  };
+  // the ring sketch was drawn facing south: screen-up = compass 180
+  const SKETCH_UP_BEARING = 180;
+
   // loupe (magnifier) geometry
-  const LOUPE_R = 52;
-  const LOUPE_ZOOM = 3.4;
-  const LOUPE_OFFSET = 78;
+  const LOUPE_R = 58;
+  const LOUPE_ZOOM = 2.1;
+  const LOUPE_OFFSET = 84;
   const DISC_R = 4.25;   // inches — footprint of a disc lying flat
 
   const PAL = {
@@ -563,6 +586,7 @@
   let state = {
     round: null,
     station: 1,
+    align: true,
     meta: {},   // round -> {date, time}
     throws: []  // {round, station, throw, x, y, score, bonus} -- x/y null for ringers
   };
@@ -597,6 +621,7 @@
         if (parsed && Array.isArray(parsed.throws)){
           state = parsed;
           if (!state.meta) state.meta = {};
+          if (typeof state.align !== 'boolean') state.align = true;
         }
       }
     }catch(e){ /* no existing session yet, or unreadable — start fresh */ }
@@ -650,7 +675,6 @@
     svg.innerHTML = '';
     const ns = 'http://www.w3.org/2000/svg';
 
-    // defs: clip for the loupe
     const defs = document.createElementNS(ns,'defs');
     const clip = document.createElementNS(ns,'clipPath');
     clip.setAttribute('id','loupeClip');
@@ -662,17 +686,18 @@
     defs.appendChild(clip);
     svg.appendChild(defs);
 
-    // everything the loupe magnifies lives in #scene
+    // ---- static backdrop (never rotates) ----
+    const bg = document.createElementNS(ns,'rect');
+    bg.setAttribute('x',0); bg.setAttribute('y',0);
+    bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
+    bg.setAttribute('fill', PAL.paper);
+    svg.appendChild(bg);
+
+    // ---- #scene: the ground. rotates to match where you're standing ----
     const scene = document.createElementNS(ns,'g');
     scene.setAttribute('id','scene');
     svg.appendChild(scene);
 
-    const bg = document.createElementNS(ns,'rect');
-    bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
-    bg.setAttribute('fill', PAL.paper);
-    scene.appendChild(bg);
-
-    // --- signature: midway sunburst radiating from the pole ---
     const burst = document.createElementNS(ns,'g');
     const rayCount = 24;
     const rayLen = Math.max(VB_W, VB_H);
@@ -689,15 +714,6 @@
       burst.appendChild(p);
     }
     scene.appendChild(burst);
-
-    [ [0,CY,VB_W,CY], [CX,0,CX,VB_H] ].forEach(coords=>{
-      const l = document.createElementNS(ns,'line');
-      l.setAttribute('x1',coords[0]); l.setAttribute('y1',coords[1]);
-      l.setAttribute('x2',coords[2]); l.setAttribute('y2',coords[3]);
-      l.setAttribute('stroke', PAL.ink); l.setAttribute('stroke-width','0.7');
-      l.setAttribute('stroke-dasharray','5,4'); l.setAttribute('opacity','0.28');
-      scene.appendChild(l);
-    });
 
     const zoneDefs = [
       {radii:ZONE1, hex:PAL.s1, opacity:0.13},
@@ -719,15 +735,17 @@
     pole.setAttribute('fill', PAL.ink); pole.setAttribute('opacity','0.7');
     scene.appendChild(pole);
 
-    // zone value numerals — faint, just enough to read
+    // ring numerals: carried by the rotation, but kept upright
     const labels = [
-      {y: CY-ZONE1.top+30, t:'1', hex:PAL.s1, size:26, op:0.30},
-      {y: CY-ZONE2.top+29, t:'2', hex:PAL.s2, size:25, op:0.30},
-      {y: CY-ZONE3.top+21, t:'3', hex:PAL.s3, size:26, op:0.34}
+      {id:'num1', y: CY-ZONE1.top+30, t:'1', hex:PAL.s1, size:26, op:0.30},
+      {id:'num2', y: CY-ZONE2.top+29, t:'2', hex:PAL.s2, size:25, op:0.30},
+      {id:'num3', y: CY-ZONE3.top+21, t:'3', hex:PAL.s3, size:26, op:0.34}
     ];
     labels.forEach(l=>{
       const t = document.createElementNS(ns,'text');
+      t.setAttribute('id', l.id);
       t.setAttribute('x',CX); t.setAttribute('y',l.y);
+      t.setAttribute('data-ly', l.y);
       t.setAttribute('text-anchor','middle');
       t.setAttribute('font-family',"'Rye', serif");
       t.setAttribute('font-size',l.size);
@@ -737,7 +755,7 @@
       scene.appendChild(t);
     });
 
-    // everything beyond the outer ring scores nothing
+    // ---- static overlay (never rotates) ----
     const oob = document.createElementNS(ns,'text');
     oob.setAttribute('x', 11); oob.setAttribute('y', VB_H - 11);
     oob.setAttribute('font-family',"'Saira Condensed', sans-serif");
@@ -747,7 +765,27 @@
     oob.setAttribute('fill', PAL.dust);
     oob.setAttribute('opacity','0.85');
     oob.textContent = 'OUT OF BOUNDS';
-    scene.appendChild(oob);
+    svg.appendChild(oob);
+
+    // "you are here" marker — only shown when the view is aligned to your throw
+    const you = document.createElementNS(ns,'g');
+    you.setAttribute('id','youMarker');
+    you.style.display = 'none';
+    const tri = document.createElementNS(ns,'path');
+    tri.setAttribute('d', `M ${CX-9} ${VB_H-20} L ${CX+9} ${VB_H-20} L ${CX} ${VB_H-34} Z`);
+    tri.setAttribute('fill', PAL.teal);
+    you.appendChild(tri);
+    const youTxt = document.createElementNS(ns,'text');
+    youTxt.setAttribute('id','youText');
+    youTxt.setAttribute('x', CX); youTxt.setAttribute('y', VB_H-8);
+    youTxt.setAttribute('text-anchor','middle');
+    youTxt.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    youTxt.setAttribute('font-size','10');
+    youTxt.setAttribute('font-weight','700');
+    youTxt.setAttribute('letter-spacing','1.2');
+    youTxt.setAttribute('fill', PAL.teal);
+    you.appendChild(youTxt);
+    svg.appendChild(you);
 
     buildLoupe(svg, ns);
 
@@ -755,6 +793,49 @@
     svg.addEventListener('pointermove', onFieldPointerMove);
     svg.addEventListener('pointerup', onFieldPointerUp);
     svg.addEventListener('pointercancel', onFieldPointerCancel);
+  }
+
+  // how far to spin the ground so your throwing line points up the screen
+  function sceneRotation(){
+    if (!state.align) return 0;
+    const st = STATIONS[state.station];
+    if (!st) return 0;
+    return 180 - st.bearing;
+  }
+
+  function applyRotation(){
+    const phi = sceneRotation();
+    const scene = document.getElementById('scene');
+    if (scene) scene.setAttribute('transform', `rotate(${phi} ${CX} ${CY})`);
+    // counter-spin the ring numerals so they stay readable
+    ['num1','num2','num3'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (!el) return;
+      const ly = el.getAttribute('data-ly');
+      el.setAttribute('transform', `rotate(${-phi} ${CX} ${ly})`);
+    });
+    const you = document.getElementById('youMarker');
+    const txt = document.getElementById('youText');
+    if (you){
+      if (state.align && STATIONS[state.station]){
+        you.style.display = '';
+        txt.textContent = `YOU · ${STATIONS[state.station].dist} FT`;
+      } else {
+        you.style.display = 'none';
+      }
+    }
+  }
+
+  // screen point -> ground (sketch) coordinates
+  function unrotate(x, y){
+    const phi = sceneRotation();
+    if (!phi) return {x, y};
+    const a = -phi * Math.PI/180;
+    const dx = x - CX, dy = y - CY;
+    return {
+      x: CX + dx*Math.cos(a) - dy*Math.sin(a),
+      y: CY + dx*Math.sin(a) + dy*Math.cos(a)
+    };
   }
 
   function buildLoupe(svg, ns){
@@ -821,6 +902,29 @@
     badgeTxt.setAttribute('font-weight','900');
     badgeTxt.setAttribute('fill', PAL.paper);
     loupe.appendChild(badgeTxt);
+
+    // fingertip anchor on the full map — keeps you oriented while zoomed
+    const anchor = document.createElementNS(ns,'circle');
+    anchor.setAttribute('id','loupeAnchor');
+    anchor.setAttribute('r', 7);
+    anchor.setAttribute('fill','none');
+    anchor.setAttribute('stroke', PAL.ink);
+    anchor.setAttribute('stroke-width','1.6');
+    anchor.setAttribute('opacity','0.9');
+    loupe.appendChild(anchor);
+    const anchorDot = document.createElementNS(ns,'circle');
+    anchorDot.setAttribute('id','loupeAnchorDot');
+    anchorDot.setAttribute('r', 1.6);
+    anchorDot.setAttribute('fill', PAL.ink);
+    loupe.appendChild(anchorDot);
+    // tether from fingertip to the lens
+    const tether = document.createElementNS(ns,'line');
+    tether.setAttribute('id','loupeTether');
+    tether.setAttribute('stroke', PAL.ink);
+    tether.setAttribute('stroke-width','1');
+    tether.setAttribute('stroke-dasharray','3,3');
+    tether.setAttribute('opacity','0.45');
+    loupe.appendChild(tether);
 
     svg.appendChild(loupe);
   }
@@ -1127,10 +1231,10 @@
   function fieldPoint(evt){
     const svg = document.getElementById('target');
     const rect = svg.getBoundingClientRect();
-    return {
-      x: (evt.clientX - rect.left) / rect.width * VB_W,
-      y: (evt.clientY - rect.top) / rect.height * VB_H
-    };
+    const sx = (evt.clientX - rect.left) / rect.width * VB_W;
+    const sy = (evt.clientY - rect.top) / rect.height * VB_H;
+    const g = unrotate(sx, sy);
+    return { x: sx, y: sy, gx: g.x, gy: g.y };   // screen vs ground
   }
 
   function updateLoupe(px, py){
@@ -1161,9 +1265,18 @@
     v.setAttribute('x1', lx); v.setAttribute('y1', ly-11);
     v.setAttribute('x2', lx); v.setAttribute('y2', ly+11);
 
-    const raw = scoreForPoint(px - CX, py - CY);
-    const onLine = straddlesLine(px, py);
+    const gp = unrotate(px, py);
+    const raw = scoreForPoint(gp.x - CX, gp.y - CY);
+    const onLine = straddlesLine(gp.x, gp.y);
     const shown = onLine ? nextTier(raw) : raw;
+    ['loupeAnchor','loupeAnchorDot'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.setAttribute('cx', px); el.setAttribute('cy', py);
+    });
+    const teth = document.getElementById('loupeTether');
+    teth.setAttribute('x1', px); teth.setAttribute('y1', py);
+    teth.setAttribute('x2', lx); teth.setAttribute('y2', ly);
+
     const badge = document.getElementById('loupeBadge');
     badge.setAttribute('cx', lx); badge.setAttribute('cy', ly - LOUPE_R - 4);
     badge.setAttribute('fill', colorForScore(shown));
@@ -1203,8 +1316,8 @@
     loupePointerId = null;
     hideLoupe();
     const p = fieldPoint(evt);
-    const raw = scoreForPoint(p.x - CX, p.y - CY);
-    logThrow(raw, Math.round(p.x*10)/10, Math.round(p.y*10)/10, straddlesLine(p.x, p.y));
+    const raw = scoreForPoint(p.gx - CX, p.gy - CY);
+    logThrow(raw, Math.round(p.gx*10)/10, Math.round(p.gy*10)/10, straddlesLine(p.gx, p.gy));
   }
 
   function onFieldPointerCancel(evt){
@@ -1355,6 +1468,14 @@
 
   function render(){
     document.getElementById('stationNum').textContent = state.station;
+    const at = document.getElementById('alignToggle');
+    if (at) at.checked = !!state.align;
+    const an = document.getElementById('alignNote');
+    if (an){
+      const stn = STATIONS[state.station];
+      an.textContent = stn ? `${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0` : '';
+    }
+    applyRotation();
     drawMarkers();
     updateTally();
     updateThrowDots();
@@ -1363,18 +1484,27 @@
   }
 
   function toCSV(){
-    const header = 'date,time,round,station,throw,plotted_score,on_line,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive\n';
+    const header = 'date,time,round,station,station_dist_ft,station_bearing_deg,throw,plotted_score,on_line,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
       const eff = effectiveScore(t);
       const onLine = t.line ? 1 : 0;
       const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
       const stamp = `${m.date || ''},${m.time || ''}`;
-      const core = `${stamp},${t.round},${t.station},${t.throw},${t.score},${onLine},${eff},${bonus},${eff+bonus}`;
-      if (t.x === null || t.y === null) return `${core},,`;
-      const dx = Math.round((t.x - CX)*10)/10;
-      const dyUp = Math.round((CY - t.y)*10)/10;
-      return `${core},${dx},${dyUp}`;
+      const stn = STATIONS[t.station] || {dist:'', bearing:''};
+      const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${onLine},${eff},${bonus},${eff+bonus}`;
+      if (t.x === null || t.y === null) return `${core},,,,`;
+      const dx = Math.round((t.x - CX)*10)/10;        // + = sketch right = west
+      const dyUp = Math.round((CY - t.y)*10)/10;      // + = sketch top   = south
+      // rotate the miss into the throwing frame: long = past the pole, right = right of the line
+      let lng = '', rgt = '';
+      if (stn.bearing !== ''){
+        const N = -dyUp, E = -dx;
+        const th = stn.bearing * Math.PI/180;
+        lng = Math.round((N*Math.cos(th) + E*Math.sin(th))*10)/10;
+        rgt = Math.round((-N*Math.sin(th) + E*Math.cos(th))*10)/10;
+      }
+      return `${core},${dx},${dyUp},${lng},${rgt}`;
     }).join('\n');
     return header + rows;
   }
@@ -1415,7 +1545,8 @@
       lbl.textContent = t.station + '.' + t.throw;
       g.appendChild(lbl);
     });
-    clone.appendChild(g);
+    const cScene = clone.querySelector('#scene');
+    (cScene || clone).appendChild(g);
 
     const basketCount = state.throws.filter(t=>t.round===state.round && t.score===10).length;
     const bc = document.createElementNS(ns,'text');
@@ -1455,6 +1586,11 @@
   document.getElementById('nextStation').addEventListener('click', ()=>changeStation(1));
   document.getElementById('undoBtn').addEventListener('click', undo);
   document.getElementById('showAllToggle').addEventListener('change', render);
+  document.getElementById('alignToggle').addEventListener('change', (e)=>{
+    state.align = e.target.checked;
+    saveState();
+    render();
+  });
   document.getElementById('roundInput').addEventListener('input', (e)=>{
     const v = e.target.value;
     state.round = v === '' ? null : Number(v);
