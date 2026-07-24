@@ -211,7 +211,7 @@
   .target-wrap{display:flex; justify-content:center; margin-bottom:10px;}
   #target{
     width:100%;
-    aspect-ratio:315/312;
+    aspect-ratio:355/422;
     touch-action:none;
     cursor:crosshair;
     display:block;
@@ -223,7 +223,7 @@
   .basket-wrap{display:flex; justify-content:center; margin-bottom:12px;}
   #basketStrip{
     width:100%;
-    aspect-ratio:315/134;
+    aspect-ratio:355/134;
     touch-action:none;
     cursor:pointer;
     display:block;
@@ -487,15 +487,17 @@
 <script>
 (function(){
   // ---- real-world geometry (inches from center) ----
-  const MARGIN = 40;
+  const M_TOP = 130;   // headroom so the lens can sit above your finger
+  const M_SIDE = 60;   // room to plot wide out-of-bounds throws
+  const M_BOT = 60;
   const ZONE1 = { top: 121, bottom: 111, left: 112, right: 123 }; // 1-pt outer boundary
   const ZONE2 = { top: 67,  bottom: 59,  left: 56,  right: 62  }; // 2-pt boundary
   const ZONE3 = { top: 27,  bottom: 27,  left: 23,  right: 23  }; // 3-pt oval (22/18 from pole) + 5" gap all round
 
-  const CX = MARGIN + ZONE1.left;
-  const CY = MARGIN + ZONE1.top;
-  const VB_W = MARGIN*2 + ZONE1.left + ZONE1.right;
-  const VB_H = MARGIN*2 + ZONE1.top + ZONE1.bottom;
+  const CX = M_SIDE + ZONE1.left;
+  const CY = M_TOP + ZONE1.top;
+  const VB_W = M_SIDE*2 + ZONE1.left + ZONE1.right;
+  const VB_H = M_TOP + M_BOT + ZONE1.top + ZONE1.bottom;
 
   // basket strip (below the field, full width, short height)
   const STRIP_W = VB_W;
@@ -509,7 +511,7 @@
   const CAN_X = 104;
   const CAN_Y = BASKET_CY - CAN_H/2;
   const LINE_X = 172;
-  const LINE_W = 130;
+  const LINE_W = 168;
   const LINE_H = 66;
   const LINE_Y = BASKET_CY - LINE_H/2;
   const TALLY_X = 10;
@@ -1273,11 +1275,21 @@
     if (!g) return;
     g.style.display = '';
 
-    // keep the lens on-canvas, and above the finger when there's room
-    const lx = Math.min(Math.max(px, LOUPE_R + 3), VB_W - LOUPE_R - 3);
-    let ly = py - LOUPE_OFFSET;
-    if (ly < LOUPE_R + 3) ly = py + LOUPE_OFFSET;
-    ly = Math.min(Math.max(ly, LOUPE_R + 3), VB_H - LOUPE_R - 3);
+    // Keep the lens above the fingertip. Use the full offset where there's
+    // room; tuck it closer as you plot higher; and only if it would actually
+    // cover your finger, slide it beside — never underneath, where the hand
+    // hides it.
+    const minY = LOUPE_R + 3;
+    let lx = px;
+    let ly = Math.max(py - LOUPE_OFFSET, minY);
+
+    if (ly + LOUPE_R > py){
+      ly = minY;
+      const need = LOUPE_R + 22;
+      lx = (px < VB_W/2) ? px + need : px - need;
+    }
+    lx = Math.min(Math.max(lx, LOUPE_R + 3), VB_W - LOUPE_R - 3);
+    ly = Math.min(Math.max(ly, minY), VB_H - LOUPE_R - 3);
 
     document.getElementById('loupeClipCircle').setAttribute('cx', lx);
     document.getElementById('loupeClipCircle').setAttribute('cy', ly);
