@@ -479,7 +479,7 @@
   <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Press and hold to open the lens, slide to the exact spot, then lift to plot. With the map aligned, you are standing at the bottom marker and throwing up the screen &mdash; so long is up, short is down, and left is left. Discs touching a line round up automatically; tap ON LINE to correct a call.</p>
+<p class="target-hint">Press and hold to open the lens, slide to the exact spot, then lift to plot. With the map aligned, you are standing at the bottom marker and throwing up the screen &mdash; so long is up, short is down, and left is left. A disc touching a line rounds up automatically.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
 
 </div>
@@ -502,19 +502,15 @@
   // basket strip (below the field, full width, short height)
   const STRIP_W = VB_W;
   const STRIP_H = 134;
-  const BASKET_CX = 52;
+  const BASKET_CX = 110;
   const BASKET_CY = 50;
-  const BASKET_R = 36;
-  const CAN_W = 50;
+  const BASKET_R = 40;
+  const CAN_W = 56;
   const CAN_H = 66;
   const CAN_RY = 7;
-  const CAN_X = 104;
+  const CAN_X = 217;
   const CAN_Y = BASKET_CY - CAN_H/2;
-  const LINE_X = 172;
-  const LINE_W = 168;
-  const LINE_H = 66;
-  const LINE_Y = BASKET_CY - LINE_H/2;
-  const TALLY_X = 10;
+  const TALLY_X = 70;
   const TALLY_Y = 104;
   const CAN_BONUS = 5;
 
@@ -1081,56 +1077,6 @@
     canSub.textContent = 'CAN';
     svg.appendChild(canSub);
 
-    // ---- on-the-line override ----
-    const lineBox = document.createElementNS(ns,'rect');
-    lineBox.setAttribute('id','lineBtn');
-    lineBox.setAttribute('x', LINE_X); lineBox.setAttribute('y', LINE_Y);
-    lineBox.setAttribute('width', LINE_W); lineBox.setAttribute('height', LINE_H);
-    lineBox.setAttribute('rx', 3);
-    lineBox.setAttribute('fill','none');
-    lineBox.setAttribute('stroke', PAL.teal);
-    lineBox.setAttribute('stroke-width','2.5');
-    lineBox.setAttribute('stroke-dasharray','7,4');
-    svg.appendChild(lineBox);
-
-    // a disc sitting astride a boundary
-    const bx = LINE_X + 26, by = LINE_Y + 26;
-    const boundary = document.createElementNS(ns,'path');
-    boundary.setAttribute('id','lineArc');
-    boundary.setAttribute('d', `M ${bx-19} ${by+13} Q ${bx} ${by-15} ${bx+19} ${by+13}`);
-    boundary.setAttribute('fill','none');
-    boundary.setAttribute('stroke', PAL.teal);
-    boundary.setAttribute('stroke-width','2');
-    svg.appendChild(boundary);
-    const straddler = document.createElementNS(ns,'circle');
-    straddler.setAttribute('id','lineDisc');
-    straddler.setAttribute('cx', bx); straddler.setAttribute('cy', by-8);
-    straddler.setAttribute('r', 8);
-    straddler.setAttribute('fill', PAL.paper);
-    straddler.setAttribute('stroke', PAL.teal);
-    straddler.setAttribute('stroke-width','2');
-    svg.appendChild(straddler);
-
-    const lineLabel = document.createElementNS(ns,'text');
-    lineLabel.setAttribute('id','lineLabel');
-    lineLabel.setAttribute('x', LINE_X + 58); lineLabel.setAttribute('y', LINE_Y + 28);
-    lineLabel.setAttribute('font-family',"'Rye', serif");
-    lineLabel.setAttribute('font-size','13');
-    lineLabel.setAttribute('fill', PAL.teal);
-    lineLabel.textContent = 'ON LINE';
-    svg.appendChild(lineLabel);
-
-    const lineSub = document.createElementNS(ns,'text');
-    lineSub.setAttribute('id','lineSub');
-    lineSub.setAttribute('x', LINE_X + 58); lineSub.setAttribute('y', LINE_Y + 43);
-    lineSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    lineSub.setAttribute('font-size','8.5');
-    lineSub.setAttribute('font-weight','700');
-    lineSub.setAttribute('letter-spacing','1.2');
-    lineSub.setAttribute('fill', PAL.teal);
-    lineSub.textContent = 'ROUNDS UP';
-    svg.appendChild(lineSub);
-
     svg.addEventListener('click', handleBasketTap);
   }
 
@@ -1162,24 +1108,6 @@
     if (cl) cl.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
     if (cs) cs.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
 
-    // on-the-line
-    const lineOn = !!(last && last.line);
-    const lb = document.getElementById('lineBtn');
-    const arc = document.getElementById('lineArc');
-    const disc = document.getElementById('lineDisc');
-    const ll = document.getElementById('lineLabel');
-    const ls = document.getElementById('lineSub');
-    if (lb){
-      lb.setAttribute('fill', lineOn ? PAL.teal : 'none');
-      lb.setAttribute('stroke-dasharray', lineOn ? 'none' : '7,4');
-    }
-    if (arc) arc.setAttribute('stroke', lineOn ? PAL.paper : PAL.teal);
-    if (disc){
-      disc.setAttribute('fill', lineOn ? PAL.teal : PAL.paper);
-      disc.setAttribute('stroke', lineOn ? PAL.paper : PAL.teal);
-    }
-    if (ll) ll.setAttribute('fill', lineOn ? PAL.paper : PAL.teal);
-    if (ls) ls.setAttribute('fill', lineOn ? PAL.paper : PAL.teal);
   }
 
   function drawMarkers(){
@@ -1385,31 +1313,7 @@
     }
     if (x >= CAN_X && x <= CAN_X + CAN_W && y >= CAN_Y && y <= CAN_Y + CAN_H){
       toggleCanBonus();
-      return;
     }
-    if (x >= LINE_X && x <= LINE_X + LINE_W && y >= LINE_Y && y <= LINE_Y + LINE_H){
-      toggleLineCall();
-    }
-  }
-
-  function toggleLineCall(){
-    const list = throwsForStation(state.station);
-    if (list.length === 0){
-      flashStationSummary('Log the throw first, then call it on the line.');
-      return;
-    }
-    const last = list[list.length - 1];
-    if (last.x === null){
-      flashStationSummary('A ringer is already the top score.');
-      return;
-    }
-    if (last.score === 3 && !last.line){
-      flashStationSummary('Already scoring 3 — nothing above it on the ground.');
-      return;
-    }
-    last.line = !last.line;
-    saveState();
-    render();
   }
 
   function toggleCanBonus(){
