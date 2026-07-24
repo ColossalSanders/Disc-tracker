@@ -490,7 +490,7 @@
   const MARGIN = 40;
   const ZONE1 = { top: 121, bottom: 111, left: 112, right: 123 }; // 1-pt outer boundary
   const ZONE2 = { top: 67,  bottom: 59,  left: 56,  right: 62  }; // 2-pt boundary
-  const ZONE3 = { top: 27,  bottom: 22,  left: 23,  right: 18  }; // 3-pt boundary (gap folded in on top/left)
+  const ZONE3 = { top: 27,  bottom: 27,  left: 23,  right: 23  }; // 3-pt oval (22/18 from pole) + 5" gap all round
 
   const CX = MARGIN + ZONE1.left;
   const CY = MARGIN + ZONE1.top;
@@ -698,22 +698,50 @@
     scene.setAttribute('id','scene');
     svg.appendChild(scene);
 
-    const burst = document.createElementNS(ns,'g');
-    const rayCount = 24;
-    const rayLen = Math.max(VB_W, VB_H);
-    for (let i=0;i<rayCount;i++){
-      if (i % 2) continue;
-      const a0 = (i/rayCount) * Math.PI*2;
-      const a1 = ((i+1)/rayCount) * Math.PI*2;
-      const p = document.createElementNS(ns,'path');
-      p.setAttribute('d',
-        `M ${CX} ${CY} L ${CX + Math.cos(a0)*rayLen} ${CY + Math.sin(a0)*rayLen} `+
-        `L ${CX + Math.cos(a1)*rayLen} ${CY + Math.sin(a1)*rayLen} Z`);
-      p.setAttribute('fill', PAL.brass);
-      p.setAttribute('opacity','0.10');
-      burst.appendChild(p);
+    // radial spokes — counter-rotated so the heavy cross always reads
+    // as your long/short and left/right axes
+    const spokes = document.createElementNS(ns,'g');
+    spokes.setAttribute('id','spokeGroup');
+    const SPOKE_R = 108;
+    for (let i=0;i<6;i++){
+      const a = i*30 * Math.PI/180;
+      const sx = Math.sin(a)*SPOKE_R, sy = Math.cos(a)*SPOKE_R;
+      const l = document.createElementNS(ns,'line');
+      l.setAttribute('x1', CX - sx); l.setAttribute('y1', CY + sy);
+      l.setAttribute('x2', CX + sx); l.setAttribute('y2', CY - sy);
+      l.setAttribute('stroke', PAL.ink);
+      const cardinal = (i === 0 || i === 3);
+      l.setAttribute('stroke-width', cardinal ? '1.1' : '0.6');
+      l.setAttribute('opacity', cardinal ? '0.40' : '0.25');
+      spokes.appendChild(l);
     }
-    scene.appendChild(burst);
+    scene.appendChild(spokes);
+
+    // range contours — each interpolated between the rings on either side,
+    // so it takes on their shape instead of fighting it
+    const POLE0 = {top:0, bottom:0, left:0, right:0};
+    const lerpZone = (a,b,t) => ({
+      top:    a.top    + (b.top    - a.top)    * t,
+      bottom: a.bottom + (b.bottom - a.bottom) * t,
+      left:   a.left   + (b.left   - a.left)   * t,
+      right:  a.right  + (b.right  - a.right)  * t
+    });
+    [
+      { radii: lerpZone(POLE0, ZONE3, 0.5),  dash: '2,3',     op: 0.50 },
+      { radii: lerpZone(ZONE3, ZONE2, 1/3),  dash: '7,4',     op: 0.45 },
+      { radii: lerpZone(ZONE3, ZONE2, 2/3),  dash: '2,3,9,3', op: 0.45 },
+      { radii: lerpZone(ZONE2, ZONE1, 1/3),  dash: '12,5',    op: 0.40 },
+      { radii: lerpZone(ZONE2, ZONE1, 2/3),  dash: '2,6',     op: 0.40 }
+    ].forEach(c=>{
+      const p = document.createElementNS(ns,'path');
+      p.setAttribute('d', ellipsePath(CX, CY, c.radii));
+      p.setAttribute('fill','none');
+      p.setAttribute('stroke', PAL.ink);
+      p.setAttribute('stroke-width','0.8');
+      p.setAttribute('stroke-dasharray', c.dash);
+      p.setAttribute('opacity', c.op);
+      scene.appendChild(p);
+    });
 
     const zoneDefs = [
       {radii:ZONE1, hex:PAL.s1, opacity:0.13},
@@ -814,6 +842,9 @@
       const ly = el.getAttribute('data-ly');
       el.setAttribute('transform', `rotate(${-phi} ${CX} ${ly})`);
     });
+    // spokes stay locked to the screen: heavy vertical = your throwing line
+    const sp = document.getElementById('spokeGroup');
+    if (sp) sp.setAttribute('transform', `rotate(${-phi} ${CX} ${CY})`);
     const you = document.getElementById('youMarker');
     const txt = document.getElementById('youText');
     if (you){
