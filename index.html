@@ -623,6 +623,25 @@
     };
   }
 
+  function stampEnd(round){
+    if (round === null || round === '') return;
+    if (!state.meta) state.meta = {};
+    if (!state.meta[round]) state.meta[round] = {};
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    state.meta[round].endDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+    state.meta[round].endTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+
+  function roundDurationMin(round){
+    const m = state.meta && state.meta[round];
+    if (!m || !m.date || !m.time || !m.endDate || !m.endTime) return '';
+    const start = new Date(`${m.date}T${m.time}:00`);
+    const end = new Date(`${m.endDate}T${m.endTime}:00`);
+    const diff = Math.round((end - start) / 60000);
+    return diff >= 0 ? diff : '';
+  }
+
   function throwsForStation(st){
     return state.throws.filter(t => t.station === st && t.round === state.round);
   }
@@ -1037,6 +1056,7 @@
       round: state.round, station: state.station, throw: throwNum,
       x, y, score, band: band||null, quad: quad||null, bonus: 0
     });
+    if (state.station === 11 && throwNum === 5) stampEnd(state.round);
     saveState();
     render();
   }
@@ -1181,13 +1201,13 @@
   }
 
   function toCSV(){
-    const header = 'date,time,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
+    const header = 'date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
       const band = t.band || '';
       const quad = t.quad || '';
       const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
-      const stamp = `${m.date || ''},${m.time || ''}`;
+      const stamp = `${m.date || ''},${m.time || ''},${roundDurationMin(t.round)}`;
       const stn = STATIONS[t.station] || {dist:'', bearing:''};
       const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
       if (t.x === null || t.y === null) return `${core},,,,`;
