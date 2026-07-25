@@ -886,6 +886,8 @@
     }
 
     function onDown(evt){
+      const t = evt.target;
+      if (t && t.closest && (t.closest('#undoBtn') || t.closest('#ringerBtn') || t.closest('#canBtn'))) return;
       if (currentStationFull()) return;
       if (state.round === null || state.round === ''){ flashStationSummary('Enter a round number first.'); return; }
       evt.preventDefault();
