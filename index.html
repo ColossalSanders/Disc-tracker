@@ -22,11 +22,7 @@
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html,body{touch-action:manipulation;}
   body{
-    background:
-      repeating-linear-gradient(90deg,
-        rgba(0,0,0,0.10) 0 22px,
-        rgba(255,255,255,0.03) 22px 44px),
-      var(--tent);
+    background:var(--paper);
     font-family:'Saira Condensed', system-ui, sans-serif;
     color:var(--ink);
     padding:0 0 48px;
@@ -56,10 +52,8 @@
     font-family:'Rye', serif;
     font-size:clamp(2.1rem, 10vw, 3rem);
     line-height:0.98;
-    color:var(--paper);
-    text-shadow:
-      2px 2px 0 var(--tent-dark),
-      4px 4px 0 rgba(0,0,0,0.35);
+    color:var(--tent);
+    text-shadow:2px 2px 0 rgba(0,0,0,0.15);
     margin-bottom:10px;
   }
   .rule{
@@ -87,12 +81,19 @@
   /* ---- panels ---- */
   .card{
     position:relative;
-    background:var(--paper);
-    border:2.5px solid var(--ink);
-    border-radius:3px;
-    padding:16px;
-    box-shadow:0 4px 0 rgba(0,0,0,0.4);
-    margin-bottom:16px;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+    padding:8px 4px;
+    margin-bottom:10px;
+  }
+  .card.tally{
+    background:#FFFDF7;
+    border:2px solid var(--ink);
+    border-radius:4px;
+    padding:14px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.25);
+    margin-top:14px;
   }
   .card.awning{padding-top:24px;}
   .card.awning::before{
@@ -184,79 +185,22 @@
   }
 
   /* ---- throw counter ---- */
-  .throw-status{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:12px;
-    margin-bottom:12px;
-  }
-  .throw-dots{display:flex; gap:7px;}
-  .throw-dot{
-    width:13px; height:13px;
-    border-radius:50%;
-    border:2px solid var(--paper);
-    background:transparent;
-  }
-  .throw-dot.filled{background:var(--brass); border-color:var(--brass);}
-  .throw-label{
-    font-size:0.76rem;
-    font-weight:700;
-    letter-spacing:0.2em;
-    text-transform:uppercase;
-    color:var(--paper);
-  }
-
+          
   /* ---- target + basket ---- */
   .target-wrap{display:flex; justify-content:center; margin-bottom:10px;}
   #target{
     width:100%;
-    aspect-ratio:355/422;
+    aspect-ratio:518/550;
     touch-action:none;
     cursor:crosshair;
     display:block;
-    border:2.5px solid var(--ink);
-    border-radius:3px;
-    box-shadow:0 4px 0 rgba(0,0,0,0.4);
+    border:none;
+    box-shadow:none;
     background:var(--paper);
   }
-  .basket-wrap{display:flex; justify-content:center; margin-bottom:12px;}
-  #basketStrip{
-    width:100%;
-    aspect-ratio:355/134;
-    touch-action:none;
-    cursor:pointer;
-    display:block;
-    border:2.5px solid var(--ink);
-    border-radius:3px;
-    box-shadow:0 4px 0 rgba(0,0,0,0.4);
-    background:var(--paper);
-  }
-
+    
   /* ---- actions ---- */
-  .action-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:12px;
-  }
-  .action-row button{
-    background:var(--paper);
-    border:2.5px solid var(--ink);
-    border-radius:2px;
-    padding:8px 14px;
-    font-family:'Saira Condensed', sans-serif;
-    font-size:0.78rem;
-    font-weight:700;
-    letter-spacing:0.12em;
-    text-transform:uppercase;
-    color:var(--ink);
-    cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,0.4);
-  }
-  .action-row button:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.4);}
-  .toggle{
+        .toggle{
     display:flex;
     align-items:center;
     gap:7px;
@@ -325,12 +269,6 @@
     margin-right:3px;
     border:1.5px solid var(--ink);
   }
-  .line-tick{
-    font-size:0.5rem;
-    vertical-align:super;
-    margin-left:1px;
-    opacity:0.9;
-  }
   .score-pill.bonus-pill{
     background:var(--paper);
     color:var(--tent);
@@ -394,9 +332,10 @@
     font-size:0.76rem;
     line-height:1.5;
     color:var(--paper);
-    opacity:0.72;
+    opacity:0.9;
     margin-top:26px;
     margin-bottom:9px;
+    text-shadow:0 1px 2px rgba(0,0,0,0.6);
   }
   .storage-note{
     font-size:0.74rem;
@@ -426,7 +365,7 @@
 
 <div class="stage">
 
-<div class="card awning">
+<div class="card">
   <div class="control-bar">
     <div class="round-field">
       Round <input type="number" id="roundInput" min="1" placeholder="—">
@@ -442,32 +381,19 @@
   </div>
 </div>
 
-<div class="throw-status">
-  <div class="throw-dots" id="throwDots"></div>
-  <div class="throw-label" id="throwLabel">Throw 1 of 5</div>
-</div>
-
 <div class="target-wrap">
   <svg id="target" xmlns="http://www.w3.org/2000/svg"></svg>
 </div>
 
-<div class="action-row">
-  <button id="undoBtn">&#8634; Undo last</button>
+<div class="toggle-row">
   <label class="toggle"><input type="checkbox" id="showAllToggle"> Show all shots</label>
-</div>
-
-<div class="action-row">
   <label class="toggle"><input type="checkbox" id="alignToggle" checked> Align map to my throw</label>
   <span class="align-note" id="alignNote"></span>
 </div>
 
-<div class="basket-wrap">
-  <svg id="basketStrip" xmlns="http://www.w3.org/2000/svg"></svg>
-</div>
-
 <div class="station-summary" id="stationSummary"></div>
 
-<div class="card awning">
+<div class="card tally">
   <div class="card-label">Tally Sheet</div>
   <div id="logWrap"></div>
   <div class="total-row"><span>Round total</span><span id="grandTotal">0</span></div>
@@ -479,57 +405,58 @@
   <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Press and hold to open the lens, slide to the exact spot, then lift to plot. With the map aligned, you are standing at the bottom marker and throwing up the screen &mdash; so long is up, short is down, and left is left. A disc touching a line rounds up automatically.</p>
+<p class="target-hint">Press and hold the cell where the disc landed &mdash; it depresses. Release while still inside to log it; drag off before releasing to cancel. With the map aligned you throw up the screen, so the top quadrant is long, bottom is short. Tap the medallion for a ringer, the can for a +5 knockoff.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
 
 </div>
 
 <script>
 (function(){
-  // ---- real-world geometry (inches from center) ----
-  const M_TOP = 130;   // headroom so the lens can sit above your finger
-  const M_SIDE = 60;   // room to plot wide out-of-bounds throws
+  // ---- geometry (inches from centre; rings are concentric circles) ----
+  const M_TOP = 60;
+  const M_SIDE = 44;
   const M_BOT = 60;
-  const ZONE1 = { top: 121, bottom: 111, left: 112, right: 123 }; // 1-pt outer boundary
-  const ZONE2 = { top: 67,  bottom: 59,  left: 56,  right: 62  }; // 2-pt boundary
-  const ZONE3 = { top: 27,  bottom: 27,  left: 23,  right: 23  }; // 3-pt oval (22/18 from pole) + 5" gap all round
 
-  const CX = M_SIDE + ZONE1.left;
-  const CY = M_TOP + ZONE1.top;
-  const VB_W = M_SIDE*2 + ZONE1.left + ZONE1.right;
-  const VB_H = M_TOP + M_BOT + ZONE1.top + ZONE1.bottom;
+  // circular ring radii (mean of the old oval measurements)
+  const R3 = 25;    // 3-pt outer edge (whole cell)
+  const R2 = 63;    // 2-pt outer edge
+  const R1 = 117;   // 1-pt outer edge
+  const R_NEAR = 165; // near-miss band edge
+  const R_FAR = 215;  // far-miss band edge (taps beyond still count as far)
 
-  // basket strip (below the field, full width, short height)
-  const STRIP_W = VB_W;
-  const STRIP_H = 134;
-  const BASKET_CX = 110;
-  const BASKET_CY = 50;
-  const BASKET_R = 40;
-  const CAN_W = 56;
-  const CAN_H = 66;
-  const CAN_RY = 7;
-  const CAN_X = 217;
-  const CAN_Y = BASKET_CY - CAN_H/2;
-  const TALLY_X = 70;
-  const TALLY_Y = 104;
+  const CX = M_SIDE + R_FAR;
+  const CY = M_TOP + R_FAR;
+  const VB_W = M_SIDE*2 + R_FAR*2;
+  const VB_H = M_TOP + M_BOT + R_FAR*2;
+
+  const QUADS = ['long','right','short','left'];
+  function quadFor(dx, dy){
+    if (Math.abs(dy) >= Math.abs(dx)) return dy < 0 ? 'long' : 'short';
+    return dx < 0 ? 'left' : 'right';
+  }
+
+  const OCTS = ['long','long_right','right','short_right','short','short_left','left','long_left'];
+  const OCT_ANGLE = {
+    long:-Math.PI/2, long_right:-Math.PI/4, right:0, short_right:Math.PI/4,
+    short:Math.PI/2, short_left:3*Math.PI/4, left:Math.PI, long_left:-3*Math.PI/4
+  };
+  function octFor(dx, dy){
+    let a = Math.atan2(dy, dx);
+    let idx = Math.round(a / (Math.PI/4));
+    const map = {0:'right',1:'short_right',2:'short',3:'short_left',
+                 4:'left','-4':'left','-1':'long_right','-2':'long','-3':'long_left'};
+    return map[idx];
+  }
+
   const CAN_BONUS = 5;
 
-  // station geometry, measured off the aerial (0.1001 ft/px)
-  // bearing = compass direction you throw, station -> basket
   const STATIONS = {
     1:{bearing:246, dist:53}, 2:{bearing:184, dist:47}, 3:{bearing:207, dist:59},
     4:{bearing:210, dist:84}, 5:{bearing:168, dist:77}, 6:{bearing:123, dist:68},
     7:{bearing:56,  dist:52}, 8:{bearing:359, dist:71}, 9:{bearing:313, dist:104},
     10:{bearing:302, dist:90}, 11:{bearing:281, dist:71}
   };
-  // the ring sketch was drawn facing south: screen-up = compass 180
   const SKETCH_UP_BEARING = 180;
-
-  // loupe (magnifier) geometry
-  const LOUPE_R = 58;
-  const LOUPE_ZOOM = 2.1;
-  const LOUPE_OFFSET = 84;
-  const DISC_R = 4.25;   // inches — footprint of a disc lying flat
 
   const PAL = {
     tent:'#6E1417',
@@ -540,53 +467,87 @@
     brassDark:'#8A6212',
     teal:'#1E5C5A',
     prize:'#5B2A86',
-    dust:'#7A6A55',
-    s0:'#7A6A55',
-    s1:'#A81E22',
-    s2:'#1E5C5A',
-    s3:'#C9922B',
-    s10:'#5B2A86'
+    dust:'#7A6A55'
   };
 
+  const CELLS = {
+    r1:  { long:'#F7DC24', right:'#F0A828', left:'#D9741E', short:'#B23410' },
+    r2:  { long:'#8FB8E8', right:'#5E86C8', left:'#5A4EA0', short:'#3A2A6B' },
+    near:{ long:'#CFC3A6', right:'#BCAA8A', left:'#A89880', short:'#8E7E66' },
+    far: { long:'#B7A98C', right:'#A2937A', left:'#8B7C64', short:'#6E6250' }
+  };
+  const C3_CENTER = '#241A4A';
+  const RINGER_COL = '#5B2A86';
+
   function colorForScore(s){
-    return {10:PAL.s10, 3:PAL.s3, 2:PAL.s2, 1:PAL.s1, 0:PAL.s0}[s];
+    return {10:RINGER_COL, 3:C3_CENTER, 2:CELLS.r2.left, 1:CELLS.r1.left, 0:'#8E7E66'}[s];
   }
 
-  function radiiForPoint(zone, dx, dy){
-    return {
-      rx: dx < 0 ? zone.left : zone.right,
-      ry: dy < 0 ? zone.top : zone.bottom
-    };
+  function markerFill(t){ return '#FFFFFF'; }
+
+  function bandFor(dist){
+    if (dist <= R3) return 'c3';
+    if (dist <= R2) return 'r2';
+    if (dist <= R1) return 'r1';
+    if (dist <= R_NEAR) return 'near';
+    return 'far';
+  }
+
+  function cellFor(dx, dy){
+    const dist = Math.hypot(dx, dy);
+    const band = bandFor(dist);
+    if (band === 'c3') return { band:'c3', quad:null, score:3 };
+    if (band === 'r2' || band === 'r1'){
+      return { band, quad: quadFor(dx, dy), score: band === 'r2' ? 2 : 1 };
+    }
+    return { band, quad: octFor(dx, dy), score: 0 };
   }
 
   function scoreForPoint(dx, dy){
-    let r = radiiForPoint(ZONE3, dx, dy);
-    if ((dx/r.rx)**2 + (dy/r.ry)**2 <= 1) return 3;
-    r = radiiForPoint(ZONE2, dx, dy);
-    if ((dx/r.rx)**2 + (dy/r.ry)**2 <= 1) return 2;
-    r = radiiForPoint(ZONE1, dx, dy);
-    if ((dx/r.rx)**2 + (dy/r.ry)**2 <= 1) return 1;
-    return 0;
+    return cellFor(dx, dy).score;
   }
 
-  function ellipsePath(cx, cy, radii){
-    const top = {x:cx, y:cy-radii.top};
-    const right = {x:cx+radii.right, y:cy};
-    const bottom = {x:cx, y:cy+radii.bottom};
-    const left = {x:cx-radii.left, y:cy};
-    return `M ${top.x} ${top.y} `+
-           `A ${radii.right} ${radii.top} 0 0 1 ${right.x} ${right.y} `+
-           `A ${radii.right} ${radii.bottom} 0 0 1 ${bottom.x} ${bottom.y} `+
-           `A ${radii.left} ${radii.bottom} 0 0 1 ${left.x} ${left.y} `+
-           `A ${radii.left} ${radii.top} 0 0 1 ${top.x} ${top.y} Z`;
+  const BAND_MID = { c3:0, r2:(R3+R2)/2, r1:(R2+R1)/2, near:(R1+R_NEAR)/2, far:(R_NEAR+R_FAR)/2 };
+  const QUAD_ANGLE = { long:-Math.PI/2, right:0, short:Math.PI/2, left:Math.PI };
+  function cellCenter(band, quad){
+    if (band === 'c3') return { dx:0, dy:0 };
+    const r = BAND_MID[band];
+    const a = (band === 'near' || band === 'far') ? OCT_ANGLE[quad] : QUAD_ANGLE[quad];
+    return { dx: r*Math.cos(a), dy: r*Math.sin(a) };
   }
+
+  function mixHex(h1, h2){
+    const p = h => [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+    const a = p(h1), b = p(h2);
+    return '#'+[0,1,2].map(i=>Math.round((a[i]+b[i])/2).toString(16).padStart(2,'0')).join('');
+  }
+  function missColor(band, oct){
+    const t = CELLS[band];
+    if (t[oct]) return t[oct];
+    const parts = oct.split('_');
+    return mixHex(t[parts[0]], t[parts[1]]);
+  }
+  function cellColor(band, quad){
+    if (band === 'c3') return C3_CENTER;
+    if (band === 'near' || band === 'far') return missColor(band, quad);
+    return CELLS[band][quad];
+  }
+
+  // darken a hex color for the "pressed" state
+  function darken(hex, mult){
+    const p = h => [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+    const [r,g,b] = p(hex);
+    const d = v => Math.max(0, Math.round(v*mult)).toString(16).padStart(2,'0');
+    return '#'+d(r)+d(g)+d(b);
+  }
+  const PRESS_MULT = 0.55;
 
   let state = {
     round: null,
     station: 1,
     align: true,
-    meta: {},   // round -> {date, time}
-    throws: []  // {round, station, throw, x, y, score, bonus} -- x/y null for ringers
+    meta: {},
+    throws: []
   };
 
   const STORAGE_KEY = 'landing-session';
@@ -622,7 +583,7 @@
           if (typeof state.align !== 'boolean') state.align = true;
         }
       }
-    }catch(e){ /* no existing session yet, or unreadable — start fresh */ }
+    }catch(e){ }
     document.getElementById('roundInput').value = state.round || '';
     render();
   }
@@ -653,7 +614,7 @@
   function stampNow(round){
     if (round === null || round === '') return;
     if (!state.meta) state.meta = {};
-    if (state.meta[round]) return; // already stamped, don't overwrite
+    if (state.meta[round]) return;
     const now = new Date();
     const pad = n => String(n).padStart(2,'0');
     state.meta[round] = {
@@ -666,134 +627,93 @@
     return state.throws.filter(t => t.station === st && t.round === state.round);
   }
 
+  // ---- cell registry, rebuilt each buildTarget() call ----
+  let cellEls = {}; // key "band|quad" -> {el, baseColor}
+
+  function cellKey(band, quad){ return `${band}|${quad||''}`; }
+
   function buildTarget(){
     const svg = document.getElementById('target');
     svg.setAttribute('viewBox', `0 0 ${VB_W} ${VB_H}`);
     svg.style.aspectRatio = `${VB_W} / ${VB_H}`;
     svg.innerHTML = '';
+    cellEls = {};
     const ns = 'http://www.w3.org/2000/svg';
 
-    const defs = document.createElementNS(ns,'defs');
-    const clip = document.createElementNS(ns,'clipPath');
-    clip.setAttribute('id','loupeClip');
-    const clipC = document.createElementNS(ns,'circle');
-    clipC.setAttribute('id','loupeClipCircle');
-    clipC.setAttribute('cx', 0); clipC.setAttribute('cy', 0);
-    clipC.setAttribute('r', LOUPE_R);
-    clip.appendChild(clipC);
-    defs.appendChild(clip);
-    svg.appendChild(defs);
-
-    // ---- static backdrop (never rotates) ----
     const bg = document.createElementNS(ns,'rect');
     bg.setAttribute('x',0); bg.setAttribute('y',0);
     bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
     bg.setAttribute('fill', PAL.paper);
     svg.appendChild(bg);
 
-    // ---- #scene: the ground. rotates to match where you're standing ----
     const scene = document.createElementNS(ns,'g');
     scene.setAttribute('id','scene');
     svg.appendChild(scene);
 
-    // radial spokes — counter-rotated so the heavy cross always reads
-    // as your long/short and left/right axes
-    const spokes = document.createElementNS(ns,'g');
-    spokes.setAttribute('id','spokeGroup');
-    const SPOKE_R = 108;
-    for (let i=0;i<6;i++){
-      const a = i*30 * Math.PI/180;
-      const sx = Math.sin(a)*SPOKE_R, sy = Math.cos(a)*SPOKE_R;
-      const l = document.createElementNS(ns,'line');
-      l.setAttribute('x1', CX - sx); l.setAttribute('y1', CY + sy);
-      l.setAttribute('x2', CX + sx); l.setAttribute('y2', CY - sy);
-      l.setAttribute('stroke', PAL.ink);
-      const cardinal = (i === 0 || i === 3);
-      l.setAttribute('stroke-width', cardinal ? '1.1' : '0.6');
-      l.setAttribute('opacity', cardinal ? '0.40' : '0.25');
-      spokes.appendChild(l);
-    }
-    scene.appendChild(spokes);
+    const wedge = (r_in, r_out, a0, a1) => {
+      const p0 = [CX + r_out*Math.cos(a0), CY + r_out*Math.sin(a0)];
+      const p1 = [CX + r_out*Math.cos(a1), CY + r_out*Math.sin(a1)];
+      const p2 = [CX + r_in*Math.cos(a1),  CY + r_in*Math.sin(a1)];
+      const p3 = [CX + r_in*Math.cos(a0),  CY + r_in*Math.sin(a0)];
+      const large = (a1 - a0) > Math.PI ? 1 : 0;
+      return `M ${p0[0]} ${p0[1]} A ${r_out} ${r_out} 0 ${large} 1 ${p1[0]} ${p1[1]} `+
+             `L ${p2[0]} ${p2[1]} A ${r_in} ${r_in} 0 ${large} 0 ${p3[0]} ${p3[1]} Z`;
+    };
+    const QRANGE = {
+      long:  [-3*Math.PI/4, -Math.PI/4],
+      right: [-Math.PI/4,    Math.PI/4],
+      short: [ Math.PI/4,   3*Math.PI/4],
+      left:  [ 3*Math.PI/4, 5*Math.PI/4]
+    };
 
-    // range contours — each interpolated between the rings on either side,
-    // so it takes on their shape instead of fighting it
-    const POLE0 = {top:0, bottom:0, left:0, right:0};
-    const lerpZone = (a,b,t) => ({
-      top:    a.top    + (b.top    - a.top)    * t,
-      bottom: a.bottom + (b.bottom - a.bottom) * t,
-      left:   a.left   + (b.left   - a.left)   * t,
-      right:  a.right  + (b.right  - a.right)  * t
-    });
-    [
-      { radii: lerpZone(POLE0, ZONE3, 0.5),  dash: '2,3',     op: 0.50 },
-      { radii: lerpZone(ZONE3, ZONE2, 1/3),  dash: '7,4',     op: 0.45 },
-      { radii: lerpZone(ZONE3, ZONE2, 2/3),  dash: '2,3,9,3', op: 0.45 },
-      { radii: lerpZone(ZONE2, ZONE1, 1/3),  dash: '12,5',    op: 0.40 },
-      { radii: lerpZone(ZONE2, ZONE1, 2/3),  dash: '2,6',     op: 0.40 }
-    ].forEach(c=>{
-      const p = document.createElementNS(ns,'path');
-      p.setAttribute('d', ellipsePath(CX, CY, c.radii));
-      p.setAttribute('fill','none');
-      p.setAttribute('stroke', PAL.ink);
-      p.setAttribute('stroke-width','0.8');
-      p.setAttribute('stroke-dasharray', c.dash);
-      p.setAttribute('opacity', c.op);
-      scene.appendChild(p);
-    });
+    const addWedge = (r_in, r_out, quad, fill, band) => {
+      const [a0,a1] = QRANGE[quad];
+      const path = document.createElementNS(ns,'path');
+      path.setAttribute('d', wedge(r_in, r_out, a0, a1));
+      path.setAttribute('fill', fill);
+      path.setAttribute('stroke','none');
+      scene.appendChild(path);
+      cellEls[cellKey(band, quad)] = { el:path, baseColor:fill };
+      return path;
+    };
 
-    const zoneDefs = [
-      {radii:ZONE1, hex:PAL.s1, opacity:0.13},
-      {radii:ZONE2, hex:PAL.s2, opacity:0.15},
-      {radii:ZONE3, hex:PAL.s3, opacity:0.30}
-    ];
-    zoneDefs.forEach(zd=>{
-      const p = document.createElementNS(ns,'path');
-      p.setAttribute('d', ellipsePath(CX, CY, zd.radii));
-      p.setAttribute('fill', zd.hex);
-      p.setAttribute('fill-opacity', zd.opacity);
-      p.setAttribute('stroke', zd.hex);
-      p.setAttribute('stroke-width','2.2');
-      scene.appendChild(p);
+    QUADS.forEach(q => addWedge(R2, R1, q, CELLS.r1[q], 'r1'));
+    QUADS.forEach(q => addWedge(R3, R2, q, CELLS.r2[q], 'r2'));
+
+    const c3 = document.createElementNS(ns,'circle');
+    c3.setAttribute('cx',CX); c3.setAttribute('cy',CY); c3.setAttribute('r',R3);
+    c3.setAttribute('fill', C3_CENTER);
+    scene.appendChild(c3);
+    cellEls[cellKey('c3', null)] = { el:c3, baseColor:C3_CENTER };
+
+    const octWedge = (r_in, r_out, oct, band) => {
+      const a = OCT_ANGLE[oct];
+      const a0 = a - Math.PI/8, a1 = a + Math.PI/8;
+      const path = document.createElementNS(ns,'path');
+      path.setAttribute('d', wedge(r_in, r_out, a0, a1));
+      const fill = missColor(band, oct);
+      path.setAttribute('fill', fill);
+      path.setAttribute('stroke','none');
+      scene.appendChild(path);
+      cellEls[cellKey(band, oct)] = { el:path, baseColor:fill };
+    };
+    OCTS.forEach(o => octWedge(R1, R_NEAR, o, 'near'));
+    OCTS.forEach(o => octWedge(R_NEAR, R_FAR, o, 'far'));
+
+    [R3,R2,R1,R_NEAR,R_FAR].forEach(r=>{
+      const c = document.createElementNS(ns,'circle');
+      c.setAttribute('cx',CX); c.setAttribute('cy',CY); c.setAttribute('r',r);
+      c.setAttribute('fill','none'); c.setAttribute('stroke', PAL.ink);
+      c.setAttribute('stroke-width', r<=R1 ? '1.6' : '1.1');
+      c.setAttribute('opacity', r<=R1 ? '1' : '0.6');
+      scene.appendChild(c);
     });
 
     const pole = document.createElementNS(ns,'circle');
     pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6);
-    pole.setAttribute('fill', PAL.ink); pole.setAttribute('opacity','0.7');
+    pole.setAttribute('fill','#FFFFFF'); pole.setAttribute('opacity','0.8');
     scene.appendChild(pole);
 
-    // ring numerals: carried by the rotation, but kept upright
-    const labels = [
-      {id:'num1', y: CY-ZONE1.top+30, t:'1', hex:PAL.s1, size:26, op:0.30},
-      {id:'num2', y: CY-ZONE2.top+29, t:'2', hex:PAL.s2, size:25, op:0.30},
-      {id:'num3', y: CY-ZONE3.top+21, t:'3', hex:PAL.s3, size:26, op:0.34}
-    ];
-    labels.forEach(l=>{
-      const t = document.createElementNS(ns,'text');
-      t.setAttribute('id', l.id);
-      t.setAttribute('x',CX); t.setAttribute('y',l.y);
-      t.setAttribute('data-ly', l.y);
-      t.setAttribute('text-anchor','middle');
-      t.setAttribute('font-family',"'Rye', serif");
-      t.setAttribute('font-size',l.size);
-      t.setAttribute('fill', l.hex);
-      t.setAttribute('opacity',l.op);
-      t.textContent = l.t;
-      scene.appendChild(t);
-    });
-
-    // ---- static overlay (never rotates) ----
-    const oob = document.createElementNS(ns,'text');
-    oob.setAttribute('x', 11); oob.setAttribute('y', VB_H - 11);
-    oob.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    oob.setAttribute('font-size','10');
-    oob.setAttribute('font-weight','700');
-    oob.setAttribute('letter-spacing','1.6');
-    oob.setAttribute('fill', PAL.dust);
-    oob.setAttribute('opacity','0.85');
-    oob.textContent = 'OUT OF BOUNDS';
-    svg.appendChild(oob);
-
-    // "you are here" marker — only shown when the view is aligned to your throw
     const you = document.createElementNS(ns,'g');
     you.setAttribute('id','youMarker');
     you.style.display = 'none';
@@ -813,15 +733,210 @@
     you.appendChild(youTxt);
     svg.appendChild(you);
 
-    buildLoupe(svg, ns);
+    // confirm-flash overlay (pops white briefly on release-inside)
+    const flash = document.createElementNS(ns,'path');
+    flash.setAttribute('id','cellFlash');
+    flash.setAttribute('fill', '#FFFFFF');
+    flash.setAttribute('opacity','0');
+    flash.setAttribute('pointer-events','none');
+    scene.appendChild(flash);
 
-    svg.addEventListener('pointerdown', onFieldPointerDown);
-    svg.addEventListener('pointermove', onFieldPointerMove);
-    svg.addEventListener('pointerup', onFieldPointerUp);
-    svg.addEventListener('pointercancel', onFieldPointerCancel);
+    const btnR = R3;
+    const pad = 6;
+    const ck = (x,y,r)=>{ const c=document.createElementNS(ns,'circle');
+      c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',r); return c; };
+
+    const undo = document.createElementNS(ns,'g');
+    undo.setAttribute('id','undoBtn'); undo.style.cursor='pointer';
+    const ux = btnR+pad, uy = btnR+pad;
+    const ub = ck(ux,uy,btnR); ub.setAttribute('fill','#C0201C');
+    ub.setAttribute('stroke','#7A0F0C'); ub.setAttribute('stroke-width','2.5');
+    undo.appendChild(ub);
+    // chunky counterclockwise undo arrow: thick filled arc band + solid triangular head
+    (function(){
+      const rOut = btnR*0.62;
+      const rIn  = rOut - btnR*0.24;
+      const startDeg = 35;
+      const endDeg = -230;
+      const toRad = d => d * Math.PI/180;
+      const sweepDeg = startDeg - endDeg;
+      const largeArc = sweepDeg > 180 ? 1 : 0;
+
+      const a0 = toRad(startDeg), a1 = toRad(endDeg);
+      const outerA = [ux + rOut*Math.cos(a0), uy + rOut*Math.sin(a0)];
+      const outerB = [ux + rOut*Math.cos(a1), uy + rOut*Math.sin(a1)];
+      const innerB = [ux + rIn*Math.cos(a1),  uy + rIn*Math.sin(a1)];
+      const innerA = [ux + rIn*Math.cos(a0),  uy + rIn*Math.sin(a0)];
+      const bandPath = `M ${outerA[0]} ${outerA[1]} A ${rOut} ${rOut} 0 ${largeArc} 0 ${outerB[0]} ${outerB[1]} `+
+                        `L ${innerB[0]} ${innerB[1]} A ${rIn} ${rIn} 0 ${largeArc} 1 ${innerA[0]} ${innerA[1]} Z`;
+
+      const band = document.createElementNS(ns,'path');
+      band.setAttribute('d', bandPath);
+      band.setAttribute('fill', '#FFFFFF'); band.setAttribute('stroke','none');
+      undo.appendChild(band);
+
+      // arrowhead at the leading end, tangent to ccw travel: (sin, -cos)
+      const endRad = toRad(endDeg);
+      const midR = (rOut+rIn)/2;
+      const midX = ux + midR*Math.cos(endRad), midY = uy + midR*Math.sin(endRad);
+      const tx = Math.sin(endRad), ty = -Math.cos(endRad);
+      const px = -ty, py = tx;
+      const headLen = (rOut-rIn)*2.8, headWidth = (rOut-rIn)*3.4;
+      const tipX = midX + tx*headLen*0.5,  tipY = midY + ty*headLen*0.5;
+      const baseX = midX - tx*headLen*0.5, baseY = midY - ty*headLen*0.5;
+      const b1x = baseX + px*headWidth/2, b1y = baseY + py*headWidth/2;
+      const b2x = baseX - px*headWidth/2, b2y = baseY - py*headWidth/2;
+
+      const uhead = document.createElementNS(ns,'path');
+      uhead.setAttribute('d', `M ${tipX} ${tipY} L ${b1x} ${b1y} L ${b2x} ${b2y} Z`);
+      uhead.setAttribute('fill', '#FFFFFF'); uhead.setAttribute('stroke','none');
+      undo.appendChild(uhead);
+    })();
+    undo.addEventListener('click', (e)=>{ e.stopPropagation(); undoLast(); });
+    svg.appendChild(undo);
+
+    const td = document.createElementNS(ns,'g');
+    td.setAttribute('id','throwDots');
+    svg.appendChild(td);
+
+    const ring = document.createElementNS(ns,'g');
+    ring.setAttribute('id','ringerBtn'); ring.style.cursor='pointer';
+    const rx = btnR+pad, ry = VB_H - btnR - pad;
+    const rb = ck(rx,ry,btnR); rb.setAttribute('fill', RINGER_COL);
+    rb.setAttribute('stroke', PAL.brass); rb.setAttribute('stroke-width','2.5');
+    ring.appendChild(rb);
+    const rt = document.createElementNS(ns,'text');
+    rt.setAttribute('x',rx); rt.setAttribute('y',ry-1); rt.setAttribute('text-anchor','middle');
+    rt.setAttribute('font-family',"'Rye', serif"); rt.setAttribute('font-size','15');
+    rt.setAttribute('fill', PAL.brass); rt.textContent='10';
+    ring.appendChild(rt);
+    const rs = document.createElementNS(ns,'text');
+    rs.setAttribute('x',rx); rs.setAttribute('y',ry+11); rs.setAttribute('text-anchor','middle');
+    rs.setAttribute('font-family',"'Saira Condensed', sans-serif"); rs.setAttribute('font-size','7');
+    rs.setAttribute('font-weight','700'); rs.setAttribute('letter-spacing','1'); rs.setAttribute('fill', PAL.paper);
+    rs.textContent='RINGER';
+    ring.appendChild(rs);
+    ring.addEventListener('click', (e)=>{ e.stopPropagation(); tapRinger(); });
+    svg.appendChild(ring);
+
+    const can = document.createElementNS(ns,'g');
+    can.setAttribute('id','canBtn'); can.style.cursor='pointer';
+    const cw=54, ch=44, cxx=VB_W - cw - pad, cyy=VB_H - ch - pad;
+    const cbox = document.createElementNS(ns,'rect');
+    cbox.setAttribute('id','canBox');
+    cbox.setAttribute('x',cxx); cbox.setAttribute('y',cyy);
+    cbox.setAttribute('width',cw); cbox.setAttribute('height',ch); cbox.setAttribute('rx',6);
+    cbox.setAttribute('fill','none'); cbox.setAttribute('stroke', PAL.tent);
+    cbox.setAttribute('stroke-width','2.5'); cbox.setAttribute('stroke-dasharray','7,4');
+    can.appendChild(cbox);
+    const ct = document.createElementNS(ns,'text');
+    ct.setAttribute('id','canPlus');
+    ct.setAttribute('x',cxx+cw/2); ct.setAttribute('y',cyy+ch/2-1); ct.setAttribute('text-anchor','middle');
+    ct.setAttribute('font-family',"'Rye', serif"); ct.setAttribute('font-size','16'); ct.setAttribute('fill', PAL.tent);
+    ct.textContent='+5';
+    can.appendChild(ct);
+    const cs = document.createElementNS(ns,'text');
+    cs.setAttribute('id','canSub');
+    cs.setAttribute('x',cxx+cw/2); cs.setAttribute('y',cyy+ch/2+13); cs.setAttribute('text-anchor','middle');
+    cs.setAttribute('font-family',"'Saira Condensed', sans-serif"); cs.setAttribute('font-size','8');
+    cs.setAttribute('font-weight','700'); cs.setAttribute('letter-spacing','1.4'); cs.setAttribute('fill', PAL.tent);
+    cs.textContent='CAN';
+    can.appendChild(cs);
+    can.addEventListener('click', (e)=>{ e.stopPropagation(); toggleCanBonus(); });
+    svg.appendChild(can);
+
+    // ---- press / depress / cancel / confirm interaction on scoring cells ----
+    let activeKey = null;
+
+    function svgPointFromEvent(evt){
+      const rect = svg.getBoundingClientRect();
+      const t = evt.touches && evt.touches.length ? evt.touches[0]
+              : (evt.changedTouches && evt.changedTouches.length ? evt.changedTouches[0] : evt);
+      const sx = (t.clientX - rect.left) / rect.width * VB_W;
+      const sy = (t.clientY - rect.top) / rect.height * VB_H;
+      return {sx, sy};
+    }
+
+    function groundCellAt(sx, sy){
+      const g = unrotate(sx, sy);
+      const dx = g.x - CX, dy = g.y - CY;
+      const dist = Math.hypot(dx, dy);
+      if (dist > R_FAR) return null;
+      return cellFor(dx, dy);
+    }
+
+    function pressCell(key){
+      const c = cellEls[key];
+      if (!c) return;
+      c.el.setAttribute('fill', darken(c.baseColor, PRESS_MULT));
+    }
+    function revertCell(key){
+      const c = cellEls[key];
+      if (!c) return;
+      c.el.setAttribute('fill', c.baseColor);
+    }
+    function confirmCell(key){
+      const c = cellEls[key];
+      if (!c) return;
+      c.el.style.transition = 'none';
+      c.el.setAttribute('fill', '#FFFFFF');
+      void c.el.getBoundingClientRect();
+      c.el.style.transition = 'fill 260ms ease-out';
+      c.el.setAttribute('fill', c.baseColor);
+    }
+
+    function onDown(evt){
+      if (currentStationFull()) return;
+      if (state.round === null || state.round === ''){ flashStationSummary('Enter a round number first.'); return; }
+      evt.preventDefault();
+      const {sx, sy} = svgPointFromEvent(evt);
+      const cell = groundCellAt(sx, sy);
+      if (!cell) return;
+      const key = cellKey(cell.band, cell.quad);
+      activeKey = key;
+      pressCell(key);
+    }
+    function onMoveEvt(evt){
+      if (!activeKey) return;
+      evt.preventDefault();
+      const {sx, sy} = svgPointFromEvent(evt);
+      const cell = groundCellAt(sx, sy);
+      const key = cell ? cellKey(cell.band, cell.quad) : null;
+      if (key !== activeKey){
+        revertCell(activeKey);
+        activeKey = null;
+      }
+    }
+    function onUp(evt){
+      if (!activeKey) return;
+      evt.preventDefault();
+      const key = activeKey;
+      activeKey = null;
+      const c = cellEls[key];
+      if (!c) return;
+      confirmCell(key);
+      const [band, quad] = key.split('|');
+      const cell = { band, quad: quad || null, score: band==='c3'?3 : band==='r2'?2 : band==='r1'?1 : 0 };
+      const center = cellCenter(cell.band, cell.quad);
+      logThrow(cell.score, Math.round((CX + center.dx)*10)/10, Math.round((CY + center.dy)*10)/10,
+               cell.band, cell.quad);
+    }
+    function onCancelEvt(){
+      if (!activeKey) return;
+      revertCell(activeKey);
+      activeKey = null;
+    }
+
+    svg.addEventListener('touchstart', onDown, {passive:false});
+    svg.addEventListener('touchmove', onMoveEvt, {passive:false});
+    svg.addEventListener('touchend', onUp, {passive:false});
+    svg.addEventListener('touchcancel', onCancelEvt, {passive:false});
+    svg.addEventListener('mousedown', onDown);
+    svg.addEventListener('mousemove', onMoveEvt);
+    svg.addEventListener('mouseup', onUp);
+    svg.addEventListener('mouseleave', onCancelEvt);
   }
 
-  // how far to spin the ground so your throwing line points up the screen
   function sceneRotation(){
     if (!state.align) return 0;
     const st = STATIONS[state.station];
@@ -833,16 +948,6 @@
     const phi = sceneRotation();
     const scene = document.getElementById('scene');
     if (scene) scene.setAttribute('transform', `rotate(${phi} ${CX} ${CY})`);
-    // counter-spin the ring numerals so they stay readable
-    ['num1','num2','num3'].forEach(id=>{
-      const el = document.getElementById(id);
-      if (!el) return;
-      const ly = el.getAttribute('data-ly');
-      el.setAttribute('transform', `rotate(${-phi} ${CX} ${ly})`);
-    });
-    // spokes stay locked to the screen: heavy vertical = your throwing line
-    const sp = document.getElementById('spokeGroup');
-    if (sp) sp.setAttribute('transform', `rotate(${-phi} ${CX} ${CY})`);
     const you = document.getElementById('youMarker');
     const txt = document.getElementById('youText');
     if (you){
@@ -855,7 +960,6 @@
     }
   }
 
-  // screen point -> ground (sketch) coordinates
   function unrotate(x, y){
     const phi = sceneRotation();
     if (!phi) return {x, y};
@@ -867,247 +971,19 @@
     };
   }
 
-  function buildLoupe(svg, ns){
-    const loupe = document.createElementNS(ns,'g');
-    loupe.setAttribute('id','loupeGroup');
-    loupe.setAttribute('pointer-events','none');
-    loupe.style.display = 'none';
-
-    // magnified content, clipped to the loupe circle
-    const clipped = document.createElementNS(ns,'g');
-    clipped.setAttribute('clip-path','url(#loupeClip)');
-
-    const lbg = document.createElementNS(ns,'rect');
-    lbg.setAttribute('x',0); lbg.setAttribute('y',0);
-    lbg.setAttribute('width',VB_W); lbg.setAttribute('height',VB_H);
-    lbg.setAttribute('fill', PAL.paper);
-    clipped.appendChild(lbg);
-
-    const use = document.createElementNS(ns,'use');
-    use.setAttribute('id','loupeUse');
-    use.setAttribute('href','#scene');
-    use.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#scene');
-    clipped.appendChild(use);
-    loupe.appendChild(clipped);
-
-    // brass bezel
-    const ring = document.createElementNS(ns,'circle');
-    ring.setAttribute('id','loupeRing');
-    ring.setAttribute('r', LOUPE_R);
-    ring.setAttribute('fill','none');
-    ring.setAttribute('stroke', PAL.ink);
-    ring.setAttribute('stroke-width','3');
-    loupe.appendChild(ring);
-    const ring2 = document.createElementNS(ns,'circle');
-    ring2.setAttribute('id','loupeRing2');
-    ring2.setAttribute('r', LOUPE_R-3);
-    ring2.setAttribute('fill','none');
-    ring2.setAttribute('stroke', PAL.brass);
-    ring2.setAttribute('stroke-width','1.6');
-    loupe.appendChild(ring2);
-
-    // crosshair at the loupe centre = exact plot point
-    ['loupeCrossH','loupeCrossV'].forEach(id=>{
-      const l = document.createElementNS(ns,'line');
-      l.setAttribute('id',id);
-      l.setAttribute('stroke', PAL.ink);
-      l.setAttribute('stroke-width','1.2');
-      l.setAttribute('opacity','0.85');
-      loupe.appendChild(l);
-    });
-
-    // live score readout
-    const badge = document.createElementNS(ns,'circle');
-    badge.setAttribute('id','loupeBadge');
-    badge.setAttribute('r', 13);
-    badge.setAttribute('stroke', PAL.ink);
-    badge.setAttribute('stroke-width','2');
-    loupe.appendChild(badge);
-    const badgeTxt = document.createElementNS(ns,'text');
-    badgeTxt.setAttribute('id','loupeBadgeText');
-    badgeTxt.setAttribute('text-anchor','middle');
-    badgeTxt.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    badgeTxt.setAttribute('font-size','15');
-    badgeTxt.setAttribute('font-weight','900');
-    badgeTxt.setAttribute('fill', PAL.paper);
-    loupe.appendChild(badgeTxt);
-
-    // fingertip anchor on the full map — keeps you oriented while zoomed
-    const anchor = document.createElementNS(ns,'circle');
-    anchor.setAttribute('id','loupeAnchor');
-    anchor.setAttribute('r', 7);
-    anchor.setAttribute('fill','none');
-    anchor.setAttribute('stroke', PAL.ink);
-    anchor.setAttribute('stroke-width','1.6');
-    anchor.setAttribute('opacity','0.9');
-    loupe.appendChild(anchor);
-    const anchorDot = document.createElementNS(ns,'circle');
-    anchorDot.setAttribute('id','loupeAnchorDot');
-    anchorDot.setAttribute('r', 1.6);
-    anchorDot.setAttribute('fill', PAL.ink);
-    loupe.appendChild(anchorDot);
-    // tether from fingertip to the lens
-    const tether = document.createElementNS(ns,'line');
-    tether.setAttribute('id','loupeTether');
-    tether.setAttribute('stroke', PAL.ink);
-    tether.setAttribute('stroke-width','1');
-    tether.setAttribute('stroke-dasharray','3,3');
-    tether.setAttribute('opacity','0.45');
-    loupe.appendChild(tether);
-
-    svg.appendChild(loupe);
-  }
-
-  function buildBasketStrip(){
-    const svg = document.getElementById('basketStrip');
-    svg.setAttribute('viewBox', `0 0 ${STRIP_W} ${STRIP_H}`);
-    svg.style.aspectRatio = `${STRIP_W} / ${STRIP_H}`;
-    svg.innerHTML = '';
-    const ns = 'http://www.w3.org/2000/svg';
-
-    const bg = document.createElementNS(ns,'rect');
-    bg.setAttribute('x',0); bg.setAttribute('y',0);
-    bg.setAttribute('width',STRIP_W); bg.setAttribute('height',STRIP_H);
-    bg.setAttribute('fill', PAL.paper);
-    svg.appendChild(bg);
-
-    // ---- prize medallion (ringer) ----
-    const ring = document.createElementNS(ns,'circle');
-    ring.setAttribute('cx',BASKET_CX); ring.setAttribute('cy',BASKET_CY);
-    ring.setAttribute('r',BASKET_R);
-    ring.setAttribute('fill', PAL.prize);
-    ring.setAttribute('stroke', PAL.brass);
-    ring.setAttribute('stroke-width','4');
-    svg.appendChild(ring);
-
-    const innerRing = document.createElementNS(ns,'circle');
-    innerRing.setAttribute('cx',BASKET_CX); innerRing.setAttribute('cy',BASKET_CY);
-    innerRing.setAttribute('r',BASKET_R-6);
-    innerRing.setAttribute('fill','none');
-    innerRing.setAttribute('stroke', PAL.brass);
-    innerRing.setAttribute('stroke-width','1');
-    innerRing.setAttribute('opacity','0.6');
-    svg.appendChild(innerRing);
-
-    const basketLabel = document.createElementNS(ns,'text');
-    basketLabel.setAttribute('x',BASKET_CX); basketLabel.setAttribute('y',BASKET_CY+2);
-    basketLabel.setAttribute('text-anchor','middle');
-    basketLabel.setAttribute('font-family',"'Rye', serif");
-    basketLabel.setAttribute('font-size','20');
-    basketLabel.setAttribute('fill', PAL.brass);
-    basketLabel.textContent = '10';
-    svg.appendChild(basketLabel);
-
-    const basketSub = document.createElementNS(ns,'text');
-    basketSub.setAttribute('x',BASKET_CX); basketSub.setAttribute('y',BASKET_CY+16);
-    basketSub.setAttribute('text-anchor','middle');
-    basketSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    basketSub.setAttribute('font-size','8.5');
-    basketSub.setAttribute('font-weight','700');
-    basketSub.setAttribute('letter-spacing','1.4');
-    basketSub.setAttribute('fill', PAL.paper);
-    basketSub.textContent = 'RINGER';
-    svg.appendChild(basketSub);
-
-    // ---- ringer tally, tucked under the medallion ----
-    for (let i=0;i<5;i++){
-      const rect = document.createElementNS(ns,'rect');
-      rect.setAttribute('id', 'tally-'+i);
-      rect.setAttribute('x', TALLY_X + i*17);
-      rect.setAttribute('y', TALLY_Y);
-      rect.setAttribute('width', 12); rect.setAttribute('height', 12);
-      rect.setAttribute('rx', 2);
-      rect.setAttribute('fill', 'none');
-      rect.setAttribute('stroke', PAL.ink);
-      rect.setAttribute('stroke-width','1.4');
-      svg.appendChild(rect);
-    }
-
-    // ---- can knockoff: drawn as a tin can ----
-    const canL = CAN_X;
-    const canR = CAN_X + CAN_W;
-    const canCX = CAN_X + CAN_W/2;
-    const canRX = CAN_W/2;
-    const canTopY = CAN_Y + CAN_RY;
-    const canBotY = CAN_Y + CAN_H - CAN_RY;
-
-    const canBody = document.createElementNS(ns,'path');
-    canBody.setAttribute('id','canBtn');
-    canBody.setAttribute('d',
-      `M ${canL} ${canTopY} `+
-      `A ${canRX} ${CAN_RY} 0 0 1 ${canR} ${canTopY} `+
-      `L ${canR} ${canBotY} `+
-      `A ${canRX} ${CAN_RY} 0 0 1 ${canL} ${canBotY} `+
-      `Z`);
-    canBody.setAttribute('fill','none');
-    canBody.setAttribute('stroke', PAL.tent);
-    canBody.setAttribute('stroke-width','2.5');
-    canBody.setAttribute('stroke-dasharray','7,4');
-    svg.appendChild(canBody);
-
-    const canLid = document.createElementNS(ns,'path');
-    canLid.setAttribute('id','canLid');
-    canLid.setAttribute('d',
-      `M ${canL} ${canTopY} A ${canRX} ${CAN_RY} 0 0 0 ${canR} ${canTopY}`);
-    canLid.setAttribute('fill','none');
-    canLid.setAttribute('stroke', PAL.tent);
-    canLid.setAttribute('stroke-width','2.5');
-    canLid.setAttribute('stroke-dasharray','7,4');
-    svg.appendChild(canLid);
-
-    const canLabel = document.createElementNS(ns,'text');
-    canLabel.setAttribute('id','canLabel');
-    canLabel.setAttribute('x', canCX); canLabel.setAttribute('y', CAN_Y + CAN_H/2 + 2);
-    canLabel.setAttribute('text-anchor','middle');
-    canLabel.setAttribute('font-family',"'Rye', serif");
-    canLabel.setAttribute('font-size','15');
-    canLabel.setAttribute('fill', PAL.tent);
-    canLabel.textContent = '+5';
-    svg.appendChild(canLabel);
-
-    const canSub = document.createElementNS(ns,'text');
-    canSub.setAttribute('id','canSub');
-    canSub.setAttribute('x', canCX); canSub.setAttribute('y', CAN_Y + CAN_H/2 + 15);
-    canSub.setAttribute('text-anchor','middle');
-    canSub.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    canSub.setAttribute('font-size','8.5');
-    canSub.setAttribute('font-weight','700');
-    canSub.setAttribute('letter-spacing','1.4');
-    canSub.setAttribute('fill', PAL.tent);
-    canSub.textContent = 'CAN';
-    svg.appendChild(canSub);
-
-    svg.addEventListener('click', handleBasketTap);
-  }
-
   function updateTally(){
     const list = throwsForStation(state.station);
-    const count = list.filter(t=>t.score===10).length;
-    for (let i=0;i<5;i++){
-      const el = document.getElementById('tally-'+i);
-      if (!el) continue;
-      el.setAttribute('fill', i < count ? PAL.prize : 'none');
-    }
-
     const last = list.length ? list[list.length-1] : null;
-
-    // can
     const canOn = !!(last && last.bonus);
-    const body = document.getElementById('canBtn');
-    const lid = document.getElementById('canLid');
-    const cl = document.getElementById('canLabel');
-    const cs = document.getElementById('canSub');
-    if (body){
-      body.setAttribute('fill', canOn ? PAL.tent : 'none');
-      body.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
+    const box = document.getElementById('canBox');
+    const plus = document.getElementById('canPlus');
+    const sub = document.getElementById('canSub');
+    if (box){
+      box.setAttribute('fill', canOn ? PAL.tent : 'none');
+      box.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
     }
-    if (lid){
-      lid.setAttribute('stroke', canOn ? PAL.paper : PAL.tent);
-      lid.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
-    }
-    if (cl) cl.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
-    if (cs) cs.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
-
+    if (plus) plus.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
+    if (sub) sub.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
   }
 
   function drawMarkers(){
@@ -1122,19 +998,25 @@
     const showAll = document.getElementById('showAllToggle').checked;
     const list = showAll ? state.throws.filter(t=>t.round===state.round) : throwsForStation(state.station);
 
+    const seen = {};
     list.forEach(t=>{
       if (t.x === null || t.y === null) return;
+      const key = `${t.x},${t.y}`;
+      seen[key] = (seen[key]||0);
+      const n = seen[key]++;
+      let ox=0, oy=0;
+      if (n>0){ const a=n*2.4; ox=Math.cos(a)*4.2*Math.ceil(n/6); oy=Math.sin(a)*4.2*Math.ceil(n/6); }
       const c = document.createElementNS(ns,'circle');
-      c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', colorForScore(effectiveScore(t)));
+      c.setAttribute('cx', t.x+ox); c.setAttribute('cy', t.y+oy); c.setAttribute('r', 5.5);
+      c.setAttribute('fill', markerFill(t));
       c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity', showAll && t.station !== state.station ? '0.45' : '0.95');
       g.appendChild(c);
       const lbl = document.createElementNS(ns,'text');
-      lbl.setAttribute('x', t.x); lbl.setAttribute('y', t.y+2.4);
+      lbl.setAttribute('x', t.x+ox); lbl.setAttribute('y', t.y+oy+2.4);
       lbl.setAttribute('text-anchor','middle');
       lbl.setAttribute('font-family',"'Saira Condensed', sans-serif"); lbl.setAttribute('font-size','6');
-      lbl.setAttribute('fill', PAL.paper);
+      lbl.setAttribute('fill', PAL.ink);
       lbl.setAttribute('font-weight','700');
       lbl.textContent = t.throw;
       g.appendChild(lbl);
@@ -1145,176 +1027,29 @@
     return throwsForStation(state.station).length >= 5;
   }
 
-  function logThrow(score, x, y, line){
+  function logThrow(score, x, y, band, quad){
     if (currentStationFull()) return;
-    if (state.round === null || state.round === '') {
-      flashStationSummary('Enter a round number first.');
-      return;
-    }
     const throwNum = throwsForStation(state.station).length + 1;
     stampNow(state.round);
     state.throws.push({
       round: state.round, station: state.station, throw: throwNum,
-      x, y, score, line: !!line, bonus: 0
+      x, y, score, band: band||null, quad: quad||null, bonus: 0
     });
     saveState();
     render();
   }
 
-  // --- straddle rule: a disc touching a line takes the higher value ---
-  function nextTier(score){
-    return {0:1, 1:2, 2:3, 3:3, 10:10}[score];
-  }
-
-  // does a disc centred here physically overlap a higher-scoring zone?
-  function straddlesLine(x, y){
-    const dx = x - CX, dy = y - CY;
-    const base = scoreForPoint(dx, dy);
-    if (base === 3) return false;
-    const d = Math.hypot(dx, dy);
-    if (d < 0.001) return false;
-    const ux = -dx/d, uy = -dy/d;  // unit vector toward the pole
-    const inner = scoreForPoint(dx + ux*DISC_R, dy + uy*DISC_R);
-    return inner > base;
-  }
-
-  function effectiveScore(t){
-    return t.line ? nextTier(t.score) : t.score;
-  }
-
   function throwPoints(t){
-    return effectiveScore(t) + (t.bonus || 0);
+    return t.score + (t.bonus || 0);
   }
 
-  // --- loupe-driven plotting ---
-  let loupePointerId = null;
-
-  function fieldPoint(evt){
-    const svg = document.getElementById('target');
-    const rect = svg.getBoundingClientRect();
-    const sx = (evt.clientX - rect.left) / rect.width * VB_W;
-    const sy = (evt.clientY - rect.top) / rect.height * VB_H;
-    const g = unrotate(sx, sy);
-    return { x: sx, y: sy, gx: g.x, gy: g.y };   // screen vs ground
-  }
-
-  function updateLoupe(px, py){
-    const g = document.getElementById('loupeGroup');
-    if (!g) return;
-    g.style.display = '';
-
-    // Keep the lens above the fingertip. Use the full offset where there's
-    // room; tuck it closer as you plot higher; and only if it would actually
-    // cover your finger, slide it beside — never underneath, where the hand
-    // hides it.
-    const minY = LOUPE_R + 3;
-    let lx = px;
-    let ly = Math.max(py - LOUPE_OFFSET, minY);
-
-    if (ly + LOUPE_R > py){
-      ly = minY;
-      const need = LOUPE_R + 22;
-      lx = (px < VB_W/2) ? px + need : px - need;
-    }
-    lx = Math.min(Math.max(lx, LOUPE_R + 3), VB_W - LOUPE_R - 3);
-    ly = Math.min(Math.max(ly, minY), VB_H - LOUPE_R - 3);
-
-    document.getElementById('loupeClipCircle').setAttribute('cx', lx);
-    document.getElementById('loupeClipCircle').setAttribute('cy', ly);
-    document.getElementById('loupeUse').setAttribute('transform',
-      `translate(${lx - LOUPE_ZOOM*px} ${ly - LOUPE_ZOOM*py}) scale(${LOUPE_ZOOM})`);
-
-    [['loupeRing',LOUPE_R], ['loupeRing2',LOUPE_R-3]].forEach(([id])=>{
-      const el = document.getElementById(id);
-      el.setAttribute('cx', lx); el.setAttribute('cy', ly);
-    });
-
-    const h = document.getElementById('loupeCrossH');
-    h.setAttribute('x1', lx-11); h.setAttribute('y1', ly);
-    h.setAttribute('x2', lx+11); h.setAttribute('y2', ly);
-    const v = document.getElementById('loupeCrossV');
-    v.setAttribute('x1', lx); v.setAttribute('y1', ly-11);
-    v.setAttribute('x2', lx); v.setAttribute('y2', ly+11);
-
-    const gp = unrotate(px, py);
-    const raw = scoreForPoint(gp.x - CX, gp.y - CY);
-    const onLine = straddlesLine(gp.x, gp.y);
-    const shown = onLine ? nextTier(raw) : raw;
-    ['loupeAnchor','loupeAnchorDot'].forEach(id=>{
-      const el = document.getElementById(id);
-      el.setAttribute('cx', px); el.setAttribute('cy', py);
-    });
-    const teth = document.getElementById('loupeTether');
-    teth.setAttribute('x1', px); teth.setAttribute('y1', py);
-    teth.setAttribute('x2', lx); teth.setAttribute('y2', ly);
-
-    const badge = document.getElementById('loupeBadge');
-    badge.setAttribute('cx', lx); badge.setAttribute('cy', ly - LOUPE_R - 4);
-    badge.setAttribute('fill', colorForScore(shown));
-    const txt = document.getElementById('loupeBadgeText');
-    txt.setAttribute('x', lx); txt.setAttribute('y', ly - LOUPE_R + 1);
-    txt.textContent = onLine ? shown + '\\u2191' : shown;
-  }
-
-  function hideLoupe(){
-    const g = document.getElementById('loupeGroup');
-    if (g) g.style.display = 'none';
-  }
-
-  function onFieldPointerDown(evt){
+  function tapRinger(){
     if (currentStationFull()) return;
-    if (state.round === null || state.round === '') {
-      flashStationSummary('Enter a round number first.');
-      return;
-    }
-    evt.preventDefault();
-    loupePointerId = evt.pointerId;
-    try { evt.target.setPointerCapture(evt.pointerId); } catch(e){}
-    const p = fieldPoint(evt);
-    updateLoupe(p.x, p.y);
+    if (state.round === null || state.round === ''){ flashStationSummary('Enter a round number first.'); return; }
+    logThrow(10, null, null, null, null);
   }
 
-  function onFieldPointerMove(evt){
-    if (loupePointerId === null || evt.pointerId !== loupePointerId) return;
-    evt.preventDefault();
-    const p = fieldPoint(evt);
-    updateLoupe(p.x, p.y);
-  }
-
-  function onFieldPointerUp(evt){
-    if (loupePointerId === null || evt.pointerId !== loupePointerId) return;
-    evt.preventDefault();
-    loupePointerId = null;
-    hideLoupe();
-    const p = fieldPoint(evt);
-    const raw = scoreForPoint(p.gx - CX, p.gy - CY);
-    logThrow(raw, Math.round(p.gx*10)/10, Math.round(p.gy*10)/10, straddlesLine(p.gx, p.gy));
-  }
-
-  function onFieldPointerCancel(evt){
-    if (loupePointerId !== null && evt.pointerId === loupePointerId){
-      loupePointerId = null;
-      hideLoupe();
-    }
-  }
-
-  function handleBasketTap(evt){
-    const svg = document.getElementById('basketStrip');
-    const rect = svg.getBoundingClientRect();
-    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
-    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-    const x = (clientX - rect.left) / rect.width * STRIP_W;
-    const y = (clientY - rect.top) / rect.height * STRIP_H;
-
-    const dist = Math.hypot(x - BASKET_CX, y - BASKET_CY);
-    if (dist <= BASKET_R){
-      logThrow(10, null, null, false);
-      return;
-    }
-    if (x >= CAN_X && x <= CAN_X + CAN_W && y >= CAN_Y && y <= CAN_Y + CAN_H){
-      toggleCanBonus();
-    }
-  }
+  function undoLast(){ undo(); }
 
   function toggleCanBonus(){
     const list = throwsForStation(state.station);
@@ -1327,7 +1062,6 @@
     saveState();
     render();
   }
-
 
   function flashStationSummary(msg){
     const el = document.getElementById('stationSummary');
@@ -1350,15 +1084,31 @@
 
   function updateThrowDots(){
     const wrap = document.getElementById('throwDots');
+    if (!wrap) return;
     wrap.innerHTML = '';
+    const ns='http://www.w3.org/2000/svg';
     const count = throwsForStation(state.station).length;
+    const dotR = 5, gap = 15;
+    const totalW = gap*4;
+    const x0 = VB_W - 6 - totalW - dotR;
+    const y0 = 6 + dotR + 12;
+    const lbl = document.createElementNS(ns,'text');
+    lbl.setAttribute('x', VB_W-6); lbl.setAttribute('y', 12);
+    lbl.setAttribute('text-anchor','end');
+    lbl.setAttribute('font-family',"'Saira Condensed', sans-serif");
+    lbl.setAttribute('font-size','11'); lbl.setAttribute('font-weight','700');
+    lbl.setAttribute('letter-spacing','1'); lbl.setAttribute('fill', PAL.ink);
+    lbl.textContent = count>=5 ? 'COMPLETE' : `THROW ${count+1}/5`;
+    wrap.appendChild(lbl);
     for (let i=0;i<5;i++){
-      const d = document.createElement('div');
-      d.className = 'throw-dot' + (i < count ? ' filled' : '');
-      wrap.appendChild(d);
+      const c=document.createElementNS(ns,'circle');
+      c.setAttribute('cx', x0 + i*gap); c.setAttribute('cy', y0);
+      c.setAttribute('r', dotR);
+      c.setAttribute('fill', i<count ? PAL.brass : 'none');
+      c.setAttribute('stroke', i<count ? PAL.brass : '#B0A184');
+      c.setAttribute('stroke-width','1.4');
+      wrap.appendChild(c);
     }
-    document.getElementById('throwLabel').textContent =
-      count >= 5 ? 'Station complete' : `Throw ${count+1} of 5`;
   }
 
   function updateStationSummary(){
@@ -1399,9 +1149,7 @@
       const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
       grand += subtotal;
       const pills = list.map(t=>{
-        const eff = effectiveScore(t);
-        const mark = t.line ? '<span class="line-tick">&#9650;</span>' : '';
-        const base = `<span class="score-pill" style="background:${colorForScore(eff)}">${eff}${mark}</span>`;
+        const base = `<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`;
         return t.bonus ? base + `<span class="score-pill bonus-pill">+${t.bonus}</span>` : base;
       }).join('');
       rows += `<tr><td>${st}</td><td>${pills}</td><td style="text-align:right; font-weight:700;">${subtotal}</td></tr>`;
@@ -1431,19 +1179,18 @@
   }
 
   function toCSV(){
-    const header = 'date,time,round,station,station_dist_ft,station_bearing_deg,throw,plotted_score,on_line,score,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
+    const header = 'date,time,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
-      const eff = effectiveScore(t);
-      const onLine = t.line ? 1 : 0;
+      const band = t.band || '';
+      const quad = t.quad || '';
       const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
       const stamp = `${m.date || ''},${m.time || ''}`;
       const stn = STATIONS[t.station] || {dist:'', bearing:''};
-      const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${onLine},${eff},${bonus},${eff+bonus}`;
+      const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
       if (t.x === null || t.y === null) return `${core},,,,`;
-      const dx = Math.round((t.x - CX)*10)/10;        // + = sketch right = west
-      const dyUp = Math.round((CY - t.y)*10)/10;      // + = sketch top   = south
-      // rotate the miss into the throwing frame: long = past the pole, right = right of the line
+      const dx = Math.round((t.x - CX)*10)/10;
+      const dyUp = Math.round((CY - t.y)*10)/10;
       let lng = '', rgt = '';
       if (stn.bearing !== ''){
         const N = -dyUp, E = -dx;
@@ -1470,8 +1217,6 @@
   function exportImage(){
     const svg = document.getElementById('target');
     const clone = svg.cloneNode(true);
-    const lp = clone.querySelector('#loupeGroup');
-    if (lp) lp.remove();
     const oldG = clone.querySelector('#markerGroup');
     if (oldG) oldG.remove();
     const ns = 'http://www.w3.org/2000/svg';
@@ -1479,7 +1224,7 @@
     state.throws.filter(t=>t.round===state.round && t.x!==null).forEach(t=>{
       const c = document.createElementNS(ns,'circle');
       c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', colorForScore(effectiveScore(t)));
+      c.setAttribute('fill', markerFill(t));
       c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
       c.setAttribute('opacity','0.85');
       g.appendChild(c);
@@ -1531,7 +1276,6 @@
 
   document.getElementById('prevStation').addEventListener('click', ()=>changeStation(-1));
   document.getElementById('nextStation').addEventListener('click', ()=>changeStation(1));
-  document.getElementById('undoBtn').addEventListener('click', undo);
   document.getElementById('showAllToggle').addEventListener('change', render);
   document.getElementById('alignToggle').addEventListener('change', (e)=>{
     state.align = e.target.checked;
@@ -1557,7 +1301,6 @@
   });
 
   buildTarget();
-  buildBasketStrip();
   loadState();
 })();
 </script>
