@@ -237,6 +237,7 @@
     color:var(--brass);
   }
   .station-summary.complete strong{color:var(--brass);}
+  .station-summary.palindrome strong{color:var(--brass);}
 
   /* ---- tally sheet ---- */
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
@@ -274,6 +275,21 @@
     color:var(--tent);
     border:1.5px dashed var(--tent);
     margin-right:6px;
+  }
+  /* palindrome bonus pill: shape/pattern cues (double border + inset ring),
+     not hue alone, so it reads under deuteranopia */
+  .score-pill.pal-pill{
+    background:var(--prize);
+    color:var(--paper);
+    border:2px double var(--paper);
+    box-shadow:0 0 0 1.5px var(--brass);
+    margin-left:7px;
+    letter-spacing:0.04em;
+  }
+  .score-pill.pal-pill.pal-penalty{
+    background:var(--ink);
+    color:var(--paper);
+    box-shadow:0 0 0 1.5px var(--tent);
   }
   .total-row{
     display:flex;
@@ -449,6 +465,23 @@
   }
 
   const CAN_BONUS = 5;
+
+  // ---- palindrome station bonuses ----
+  // Only these exact 5-throw sequences pay out. Order matters (1,2,3,2,1).
+  // 0,0,0,0,0 is a penalty, not a bonus. Every other palindrome earns nothing.
+  const PALINDROMES = {
+    '0,0,0,0,0': { bonus:-2, label:'0·0·0·0·0', penalty:true },
+    '1,1,1,1,1': { bonus: 4, label:'1·1·1·1·1' },
+    '1,2,3,2,1': { bonus: 4, label:'1·2·3·2·1' },
+    '2,2,2,2,2': { bonus: 7, label:'2·2·2·2·2' },
+    '3,3,3,3,3': { bonus:12, label:'3·3·3·3·3' }
+  };
+  // list = throws for one station; returns the matching palindrome record or null.
+  function palindromeFor(list){
+    if (!list || list.length !== 5) return null;
+    const key = list.slice().sort((a,b)=>a.throw-b.throw).map(t=>t.score).join(',');
+    return PALINDROMES[key] || null;
+  }
 
   const STATIONS = {
     1:{bearing:246, dist:53}, 2:{bearing:184, dist:47}, 3:{bearing:207, dist:59},
@@ -1139,15 +1172,32 @@
     if (list.length === 0){
       el.textContent = '';
       el.classList.remove('complete');
+      el.classList.remove('palindrome');
       return;
     }
-    const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
+    const base = list.reduce((a,t)=>a+throwPoints(t),0);
     if (list.length >= 5){
-      el.innerHTML = `Station ${state.station} complete — <strong>${subtotal} pts</strong>. Tap › for next station.`;
-      el.classList.add('complete');
+      const pal = palindromeFor(list);
+      if (pal){
+        const total = base + pal.bonus;
+        const sign = pal.bonus >= 0 ? '+' : '−';
+        const mag = Math.abs(pal.bonus);
+        if (pal.penalty){
+          el.innerHTML = `All five missed — <strong>−${mag} penalty</strong>. Station ${state.station}: ${total} pts.`;
+        } else {
+          el.innerHTML = `Palindrome ${pal.label} — <strong>${sign}${mag} bonus</strong>. Station ${state.station}: ${total} pts.`;
+        }
+        el.classList.add('complete');
+        el.classList.add('palindrome');
+      } else {
+        el.innerHTML = `Station ${state.station} complete — <strong>${base} pts</strong>. Tap › for next station.`;
+        el.classList.add('complete');
+        el.classList.remove('palindrome');
+      }
     } else {
-      el.innerHTML = `Station ${state.station} so far: <strong>${subtotal} pts</strong> (${list.length}/5)`;
+      el.innerHTML = `Station ${state.station} so far: <strong>${base} pts</strong> (${list.length}/5)`;
       el.classList.remove('complete');
+      el.classList.remove('palindrome');
     }
   }
 
@@ -1168,12 +1218,21 @@
     let grand = 0;
     Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{
       const list = byStation[st].sort((a,b)=>a.throw-b.throw);
-      const subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
-      grand += subtotal;
-      const pills = list.map(t=>{
+      let subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
+      let pills = list.map(t=>{
         const base = `<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`;
         return t.bonus ? base + `<span class="score-pill bonus-pill">+${t.bonus}</span>` : base;
       }).join('');
+      // palindrome station bonus (only fires on a complete 5-throw match)
+      const pal = palindromeFor(list);
+      if (pal){
+        subtotal += pal.bonus;
+        const sign = pal.bonus >= 0 ? '+' : '−';
+        const mag = Math.abs(pal.bonus);
+        const cls = pal.penalty ? 'score-pill pal-pill pal-penalty' : 'score-pill pal-pill';
+        pills += `<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`;
+      }
+      grand += subtotal;
       rows += `<tr><td>${st}</td><td>${pills}</td><td style="text-align:right; font-weight:700;">${subtotal}</td></tr>`;
     });
     wrap.innerHTML = `<table>
@@ -1200,8 +1259,24 @@
     updateLog();
   }
 
+  // palindrome result keyed by "round|station", for the completing (5th) throw only
+  function palindromeMap(){
+    const groups = {};
+    state.throws.forEach(t=>{
+      const k = t.round+'|'+t.station;
+      (groups[k]=groups[k]||[]).push(t);
+    });
+    const out = {};
+    Object.keys(groups).forEach(k=>{
+      const pal = palindromeFor(groups[k]);
+      if (pal) out[k] = pal;
+    });
+    return out;
+  }
+
   function toCSV(){
-    const header = 'date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right\n';
+    const header = 'date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right,station_palindrome,station_palindrome_bonus\n';
+    const palMap = palindromeMap();
     const rows = state.throws.map(t => {
       const bonus = t.bonus || 0;
       const band = t.band || '';
@@ -1210,17 +1285,26 @@
       const stamp = `${m.date || ''},${m.time || ''},${roundDurationMin(t.round)}`;
       const stn = STATIONS[t.station] || {dist:'', bearing:''};
       const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
-      if (t.x === null || t.y === null) return `${core},,,,`;
-      const dx = Math.round((t.x - CX)*10)/10;
-      const dyUp = Math.round((CY - t.y)*10)/10;
-      let lng = '', rgt = '';
-      if (stn.bearing !== ''){
-        const N = -dyUp, E = -dx;
-        const th = stn.bearing * Math.PI/180;
-        lng = Math.round((N*Math.cos(th) + E*Math.sin(th))*10)/10;
-        rgt = Math.round((-N*Math.sin(th) + E*Math.cos(th))*10)/10;
+      // palindrome columns populated only on the 5th (completing) throw of a matching station
+      const pal = (t.throw === 5) ? palMap[t.round+'|'+t.station] : null;
+      const palName = pal ? pal.label.replace(/·/g,'-') : '';
+      const palBonus = pal ? pal.bonus : '';
+      let spatial;
+      if (t.x === null || t.y === null){
+        spatial = ',,,';
+      } else {
+        const dx = Math.round((t.x - CX)*10)/10;
+        const dyUp = Math.round((CY - t.y)*10)/10;
+        let lng = '', rgt = '';
+        if (stn.bearing !== ''){
+          const N = -dyUp, E = -dx;
+          const th = stn.bearing * Math.PI/180;
+          lng = Math.round((N*Math.cos(th) + E*Math.sin(th))*10)/10;
+          rgt = Math.round((-N*Math.sin(th) + E*Math.cos(th))*10)/10;
+        }
+        spatial = `,${dx},${dyUp},${lng},${rgt}`;
       }
-      return `${core},${dx},${dyUp},${lng},${rgt}`;
+      return `${core}${spatial},${palName},${palBonus}`;
     }).join('\n');
     return header + rows;
   }
