@@ -162,6 +162,18 @@
   const BAND_MID={ c3:0, r2:(R3+R2)/2, r1:(R2+R1)/2, miss:(R1+R_MISS)/2 };
   function cellCenter(band,quad){ if(band==='c3') return {dx:0,dy:0}; const r=BAND_MID[band],a=QUAD_ANGLE[quad]; return {dx:r*Math.cos(a),dy:r*Math.sin(a)}; }
 
+  // ---- MEASUREMENT geometry: real inches, used ONLY for exported position data ----
+  // Display radii above are for drawing/tapping and are NOT to scale. These are the
+  // original measured ring radii (circular means), so exported inch positions stay
+  // comparable to earlier rounds. Miss band is recorded at the old near-band mid.
+  const MEAS_MID={ c3:0, r2:(25+63)/2, r1:(63+117)/2, miss:(117+165)/2 };  // 0, 44, 90, 141
+  // returns cell-centre offset in inches: dx (+ = sketch right), dyUp (+ = sketch top)
+  function measCenter(band,quad){
+    if(band==='c3') return {dx:0,dyUp:0};
+    const r=MEAS_MID[band],a=QUAD_ANGLE[quad];
+    return {dx:r*Math.cos(a), dyUp:-r*Math.sin(a)};   // sin is y-down; negate for y-up
+  }
+
   function darken(hex,mult){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)); const[r,g,b]=p(hex); const d=v=>Math.max(0,Math.round(v*mult)).toString(16).padStart(2,'0'); return '#'+d(r)+d(g)+d(b); }
   const PRESS_MULT=0.55;
 
@@ -381,7 +393,11 @@
     const rows=state.throws.map(t=>{ const bonus=t.bonus||0,band=t.band||'',quad=t.quad||''; const m=(state.meta&&state.meta[t.round])||{date:'',time:''}; const stamp=`${m.date||''},${m.time||''},${roundDurationMin(t.round)}`; const stn=STATIONS[t.station]||{dist:'',bearing:''};
       const core=`${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
       const pal=(t.throw===5)?palMap[t.round+'|'+t.station]:null; const palName=pal?pal.label.replace(/·/g,'-'):''; const palBonus=pal?pal.bonus:'';
-      let spatial; if(t.x===null||t.y===null){ spatial=',,,'; } else { const dx=Math.round((t.x-CX)*10)/10,dyUp=Math.round((CY-t.y)*10)/10; let lng='',rgt=''; if(stn.bearing!==''){ const N=-dyUp,E=-dx,th=stn.bearing*Math.PI/180; lng=Math.round((N*Math.cos(th)+E*Math.sin(th))*10)/10; rgt=Math.round((-N*Math.sin(th)+E*Math.cos(th))*10)/10; } spatial=`,${dx},${dyUp},${lng},${rgt}`; }
+      // position in REAL INCHES from the measurement geometry (band+quad), not the display coords.
+      // ringers (band null) have no position.
+      let spatial;
+      if(t.band===null){ spatial=',,,'; }
+      else { const m2=measCenter(t.band,t.quad); const dx=Math.round(m2.dx*10)/10,dyUp=Math.round(m2.dyUp*10)/10; let lng='',rgt=''; if(stn.bearing!==''){ const N=-dyUp,E=-dx,th=stn.bearing*Math.PI/180; lng=Math.round((N*Math.cos(th)+E*Math.sin(th))*10)/10; rgt=Math.round((-N*Math.sin(th)+E*Math.cos(th))*10)/10; } spatial=`,${dx},${dyUp},${lng},${rgt}`; }
       return `${core}${spatial},${palName},${palBonus}`;
     }).join('\n');
     return header+rows;
