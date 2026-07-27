@@ -6,369 +6,60 @@
 <title>Landing Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rye&family=Saira+Condensed:wght@400;600;700;900&display=swap');
-
   :root{
-    --tent:#6E1417;
-    --tent-dark:#4E0E11;
-    --paper:#F2E4C4;
-    --paper-deep:#E5D2AA;
-    --ink:#1C1410;
-    --brass:#C9922B;
-    --brass-dark:#8A6212;
-    --teal:#1E5C5A;
-    --prize:#5B2A86;
-    --dust:#7A6A55;
+    --tent:#6E1417; --tent-dark:#4E0E11; --paper:#F2E4C4; --paper-deep:#E5D2AA;
+    --ink:#1C1410; --brass:#C9922B; --brass-dark:#8A6212; --teal:#1E5C5A; --prize:#5B2A86; --dust:#7A6A55;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   html,body{touch-action:manipulation;}
-  body{
-    background:var(--paper);
-    font-family:'Saira Condensed', system-ui, sans-serif;
-    color:var(--ink);
-    padding:0 0 48px;
-    max-width:560px;
-    margin:0 auto;
-    min-height:100vh;
-  }
-
-  /* ---- poster header ---- */
-  .marquee{
-    position:relative;
-    text-align:center;
-    padding:26px 16px 20px;
-    overflow:hidden;
-  }
-  .eyebrow{
-    position:relative;
-    font-size:0.66rem;
-    font-weight:700;
-    letter-spacing:0.36em;
-    text-transform:uppercase;
-    color:var(--brass);
-    margin-bottom:8px;
-  }
-  h1{
-    position:relative;
-    font-family:'Rye', serif;
-    font-size:clamp(2.1rem, 10vw, 3rem);
-    line-height:0.98;
-    color:var(--tent);
-    text-shadow:2px 2px 0 rgba(0,0,0,0.15);
-    margin-bottom:10px;
-  }
-  .rule{
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:9px;
-    color:var(--brass);
-    font-size:0.62rem;
-    font-weight:700;
-    letter-spacing:0.26em;
-    text-transform:uppercase;
-  }
-  .rule::before, .rule::after{
-    content:'';
-    height:2px;
-    width:46px;
-    background:linear-gradient(90deg, transparent, var(--brass));
-  }
-  .rule::after{background:linear-gradient(90deg, var(--brass), transparent);}
-
+  body{ background:var(--paper); font-family:'Saira Condensed', system-ui, sans-serif; color:var(--ink);
+    padding:0 0 48px; max-width:560px; margin:0 auto; min-height:100vh; }
+  .marquee{ text-align:center; padding:22px 16px 14px; }
+  .eyebrow{ font-size:0.66rem; font-weight:700; letter-spacing:0.36em; text-transform:uppercase; color:var(--brass); margin-bottom:8px; }
+  h1{ font-family:'Rye', serif; font-size:clamp(2.1rem,10vw,3rem); line-height:0.98; color:var(--tent); text-shadow:2px 2px 0 rgba(0,0,0,0.15); margin-bottom:10px; }
+  .rule{ display:flex; align-items:center; justify-content:center; gap:9px; color:var(--brass); font-size:0.62rem; font-weight:700; letter-spacing:0.26em; text-transform:uppercase; }
+  .rule::before,.rule::after{ content:''; height:2px; width:46px; background:linear-gradient(90deg,transparent,var(--brass)); }
+  .rule::after{ background:linear-gradient(90deg,var(--brass),transparent); }
   .stage{padding:0 12px;}
-
-  /* ---- panels ---- */
-  .card{
-    position:relative;
-    background:transparent;
-    border:none;
-    box-shadow:none;
-    padding:8px 4px;
-    margin-bottom:10px;
-  }
-  .card.tally{
-    background:#FFFDF7;
-    border:2px solid var(--ink);
-    border-radius:4px;
-    padding:14px;
-    box-shadow:0 3px 0 rgba(0,0,0,0.25);
-    margin-top:14px;
-  }
-  .card.awning{padding-top:24px;}
-  .card.awning::before{
-    content:'';
-    position:absolute;
-    top:0; left:0; right:0;
-    height:11px;
-    background:repeating-linear-gradient(90deg,
-      var(--tent) 0 14px,
-      var(--paper-deep) 14px 28px);
-    border-bottom:2px solid var(--ink);
-  }
-  .card-label{
-    font-size:0.74rem;
-    font-weight:900;
-    letter-spacing:0.24em;
-    text-transform:uppercase;
-    color:var(--tent);
-    margin-bottom:12px;
-    border-bottom:2px solid var(--ink);
-    padding-bottom:8px;
-  }
-
-  /* ---- control bar ---- */
-  .control-bar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .round-field{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    font-size:0.74rem;
-    font-weight:700;
-    color:var(--dust);
-    text-transform:uppercase;
-    letter-spacing:0.16em;
-  }
-  .round-field input{
-    width:56px;
-    font-family:'Saira Condensed', sans-serif;
-    font-weight:900;
-    font-size:1.15rem;
-    text-align:center;
-    background:var(--paper-deep);
-    border:2px solid var(--ink);
-    border-radius:2px;
-    padding:3px 2px;
-    color:var(--ink);
-  }
-  .station-nav{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .station-nav button{
-    width:38px; height:38px;
-    border-radius:50%;
-    border:2.5px solid var(--ink);
-    background:var(--brass);
-    font-family:'Saira Condensed', sans-serif;
-    font-size:1.2rem;
-    font-weight:900;
-    line-height:1;
-    color:var(--ink);
-    cursor:pointer;
-  }
-  .station-nav button:active{background:var(--brass-dark); color:var(--paper);}
-  .station-display{
-    text-align:center;
-    min-width:104px;
-  }
-  .station-display .cap{
-    display:block;
-    font-size:0.58rem;
-    font-weight:700;
-    letter-spacing:0.24em;
-    color:var(--dust);
-    text-transform:uppercase;
-  }
-  .station-display .num{
-    font-family:'Rye', serif;
-    font-size:1.7rem;
-    line-height:1.1;
-    color:var(--tent);
-  }
-
-  /* ---- throw counter ---- */
-          
-  /* ---- target + basket ---- */
-  .target-wrap{display:flex; justify-content:center; margin-bottom:10px;}
-  #target{
-    width:100%;
-    aspect-ratio:518/550;
-    touch-action:none;
-    cursor:crosshair;
-    display:block;
-    border:none;
-    box-shadow:none;
-    background:var(--paper);
-  }
-    
-  /* ---- actions ---- */
-        .toggle{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    color:var(--paper);
-    font-size:0.76rem;
-    font-weight:700;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    cursor:pointer;
-  }
-  .toggle input{width:17px; height:17px; accent-color:var(--brass);}
-
-  /* ---- station summary ---- */
-  .align-note{
-    font-size:0.72rem;
-    font-weight:700;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--brass);
-  }
-  .station-summary{
-    text-align:center;
-    font-size:0.86rem;
-    font-weight:600;
-    letter-spacing:0.06em;
-    color:var(--paper);
-    margin-bottom:16px;
-    min-height:1.3em;
-  }
-  .station-summary strong{
-    font-family:'Rye', serif;
-    font-weight:400;
-    font-size:1.05rem;
-    color:var(--brass);
-  }
-  .station-summary.complete strong{color:var(--brass);}
-  .station-summary.palindrome strong{color:var(--brass);}
-
-  /* ---- tally sheet ---- */
-  table{width:100%; border-collapse:collapse; font-size:0.82rem;}
-  thead th{
-    text-align:left;
-    color:var(--dust);
-    text-transform:uppercase;
-    letter-spacing:0.16em;
-    font-size:0.62rem;
-    font-weight:700;
-    padding-bottom:7px;
-    border-bottom:2px solid var(--ink);
-  }
-  tbody td{
-    padding:7px 4px;
-    border-bottom:1px dashed rgba(28,20,16,0.22);
-    vertical-align:middle;
-    font-weight:600;
-  }
-  tbody tr:last-child td{border-bottom:none;}
-  .score-pill{
-    display:inline-block;
-    min-width:20px;
-    text-align:center;
-    padding:2px 5px;
-    border-radius:2px;
-    font-weight:900;
-    color:var(--paper);
-    font-size:0.72rem;
-    margin-right:3px;
-    border:1.5px solid var(--ink);
-  }
-  .score-pill.bonus-pill{
-    background:var(--paper);
-    color:var(--tent);
-    border:1.5px dashed var(--tent);
-    margin-right:6px;
-  }
-  /* palindrome bonus pill: shape/pattern cues (double border + inset ring),
-     not hue alone, so it reads under deuteranopia */
-  .score-pill.pal-pill{
-    background:var(--prize);
-    color:var(--paper);
-    border:2px double var(--paper);
-    box-shadow:0 0 0 1.5px var(--brass);
-    margin-left:7px;
-    letter-spacing:0.04em;
-  }
-  .score-pill.pal-pill.pal-penalty{
-    background:var(--ink);
-    color:var(--paper);
-    box-shadow:0 0 0 1.5px var(--tent);
-  }
-  .total-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    margin-top:12px;
-    padding-top:11px;
-    border-top:3px double var(--ink);
-    font-size:0.72rem;
-    font-weight:700;
-    letter-spacing:0.24em;
-    text-transform:uppercase;
-    color:var(--dust);
-  }
-  .total-row span:last-child{
-    font-family:'Rye', serif;
-    font-size:1.7rem;
-    letter-spacing:0;
-    color:var(--tent);
-  }
-  .empty-log{
-    color:var(--dust);
-    font-size:0.82rem;
-    text-align:center;
-    padding:10px 0;
-  }
-
-  /* ---- export ---- */
-  .export-row{display:flex; gap:8px; flex-wrap:wrap;}
-  .export-row button{
-    flex:1;
-    min-width:104px;
-    background:var(--ink);
-    color:var(--paper);
-    border:2.5px solid var(--ink);
-    border-radius:2px;
-    padding:12px 8px;
-    font-family:'Saira Condensed', sans-serif;
-    font-size:0.76rem;
-    font-weight:700;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,0.45);
-  }
-  .export-row button.danger{
-    background:var(--paper);
-    color:var(--tent);
-    border-color:var(--tent);
-  }
-  .export-row button:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.45);}
-
-  /* ---- footnotes ---- */
-  .target-hint{
-    text-align:center;
-    font-size:0.76rem;
-    line-height:1.5;
-    color:var(--paper);
-    opacity:0.9;
-    margin-top:26px;
-    margin-bottom:9px;
-    text-shadow:0 1px 2px rgba(0,0,0,0.6);
-  }
-  .storage-note{
-    font-size:0.74rem;
-    font-weight:700;
-    color:var(--brass);
-    text-align:center;
-    margin:0 0 9px;
-    display:none;
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    *{transition:none !important; animation:none !important;}
-  }
-  button:focus-visible, input:focus-visible{
-    outline:3px solid var(--brass);
-    outline-offset:2px;
-  }
+  .card{ padding:8px 4px; margin-bottom:10px; }
+  .card.tally{ background:#FFFDF7; border:2px solid var(--ink); border-radius:4px; padding:14px; box-shadow:0 3px 0 rgba(0,0,0,0.25); margin-top:14px; }
+  .card-label{ font-size:0.74rem; font-weight:900; letter-spacing:0.24em; text-transform:uppercase; color:var(--tent); margin-bottom:12px; border-bottom:2px solid var(--ink); padding-bottom:8px; }
+  .control-bar{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .round-field{ display:flex; align-items:center; gap:7px; font-size:0.74rem; font-weight:700; color:var(--dust); text-transform:uppercase; letter-spacing:0.16em; }
+  .round-field input{ width:56px; font-family:'Saira Condensed',sans-serif; font-weight:900; font-size:1.15rem; text-align:center; background:var(--paper-deep); border:2px solid var(--ink); border-radius:2px; padding:3px 2px; color:var(--ink); }
+  .station-nav{ display:flex; align-items:center; gap:8px; }
+  .station-nav button{ width:38px; height:38px; border-radius:50%; border:2.5px solid var(--ink); background:var(--brass); font-family:'Saira Condensed',sans-serif; font-size:1.2rem; font-weight:900; line-height:1; color:var(--ink); cursor:pointer; }
+  .station-nav button:active{ background:var(--brass-dark); color:var(--paper); }
+  .station-display{ text-align:center; min-width:104px; }
+  .station-display .cap{ display:block; font-size:0.58rem; font-weight:700; letter-spacing:0.24em; color:var(--dust); text-transform:uppercase; }
+  .station-display .num{ font-family:'Rye',serif; font-size:1.7rem; line-height:1.1; color:var(--tent); }
+  .target-wrap{ display:flex; justify-content:center; margin-bottom:10px; }
+  #target{ width:100%; aspect-ratio:1/1; touch-action:none; cursor:crosshair; display:block; background:var(--paper); }
+  .toggle{ display:flex; align-items:center; gap:7px; color:var(--dust); font-size:0.76rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; }
+  .toggle input{ width:17px; height:17px; accent-color:var(--brass); }
+  .toggle-row{ display:flex; gap:16px; align-items:center; margin:8px 2px; }
+  .align-note{ font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass); margin-left:auto; }
+  .station-summary{ text-align:center; font-size:0.86rem; font-weight:600; letter-spacing:0.06em; color:var(--ink); margin:6px 0 14px; min-height:1.3em; }
+  .station-summary strong{ font-family:'Rye',serif; font-weight:400; font-size:1.05rem; color:var(--tent); }
+  table{ width:100%; border-collapse:collapse; font-size:0.82rem; }
+  thead th{ text-align:left; color:var(--dust); text-transform:uppercase; letter-spacing:0.16em; font-size:0.62rem; font-weight:700; padding-bottom:7px; border-bottom:2px solid var(--ink); }
+  tbody td{ padding:7px 4px; border-bottom:1px dashed rgba(28,20,16,0.22); vertical-align:middle; font-weight:600; }
+  tbody tr:last-child td{ border-bottom:none; }
+  .score-pill{ display:inline-block; min-width:20px; text-align:center; padding:2px 5px; border-radius:2px; font-weight:900; color:var(--paper); font-size:0.72rem; margin-right:3px; border:1.5px solid var(--ink); }
+  .score-pill.bonus-pill{ background:var(--paper); color:var(--tent); border:1.5px dashed var(--tent); margin-right:6px; }
+  .score-pill.pal-pill{ background:var(--prize); color:var(--paper); border:2px double var(--paper); box-shadow:0 0 0 1.5px var(--brass); margin-left:7px; letter-spacing:0.04em; }
+  .score-pill.pal-pill.pal-penalty{ background:var(--ink); color:var(--paper); box-shadow:0 0 0 1.5px var(--tent); }
+  .total-row{ display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; padding-top:11px; border-top:3px double var(--ink); font-size:0.72rem; font-weight:700; letter-spacing:0.24em; text-transform:uppercase; color:var(--dust); }
+  .total-row span:last-child{ font-family:'Rye',serif; font-size:1.7rem; letter-spacing:0; color:var(--tent); }
+  .empty-log{ color:var(--dust); font-size:0.82rem; text-align:center; padding:10px 0; }
+  .export-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .export-row button{ flex:1; min-width:104px; background:var(--ink); color:var(--paper); border:2.5px solid var(--ink); border-radius:2px; padding:12px 8px; font-family:'Saira Condensed',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,0.45); }
+  .export-row button.danger{ background:var(--paper); color:var(--tent); border-color:var(--tent); }
+  .export-row button:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.45); }
+  .target-hint{ text-align:center; font-size:0.76rem; line-height:1.5; color:var(--dust); margin:20px 0 9px; }
+  .storage-note{ font-size:0.74rem; font-weight:700; color:var(--brass); text-align:center; margin:0 0 9px; display:none; }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+  button:focus-visible, input:focus-visible{ outline:3px solid var(--brass); outline-offset:2px; }
 </style>
 </head>
 <body>
@@ -380,30 +71,22 @@
 </header>
 
 <div class="stage">
-
 <div class="card">
   <div class="control-bar">
-    <div class="round-field">
-      Round <input type="number" id="roundInput" min="1" placeholder="—">
-    </div>
+    <div class="round-field">Round <input type="number" id="roundInput" min="1" placeholder="—"></div>
     <div class="station-nav">
       <button id="prevStation" aria-label="Previous station">&lsaquo;</button>
-      <div class="station-display">
-        <span class="cap">Station</span>
-        <span class="num" id="stationNum">1</span>
-      </div>
+      <div class="station-display"><span class="cap">Station</span><span class="num" id="stationNum">1</span></div>
       <button id="nextStation" aria-label="Next station">&rsaquo;</button>
     </div>
   </div>
 </div>
 
-<div class="target-wrap">
-  <svg id="target" xmlns="http://www.w3.org/2000/svg"></svg>
-</div>
+<div class="target-wrap"><svg id="target" xmlns="http://www.w3.org/2000/svg"></svg></div>
 
 <div class="toggle-row">
   <label class="toggle"><input type="checkbox" id="showAllToggle"> Show all shots</label>
-  <label class="toggle"><input type="checkbox" id="alignToggle" checked> Align map to my throw</label>
+  <label class="toggle"><input type="checkbox" id="alignToggle" checked> Align to throw</label>
   <span class="align-note" id="alignNote"></span>
 </div>
 
@@ -417,999 +100,305 @@
 
 <div class="export-row">
   <button id="exportCsv">Export CSV</button>
-  <button id="exportImg">Export image</button>
   <button id="resetSession" class="danger">Clear session</button>
 </div>
 
-<p class="target-hint">Press and hold the cell where the disc landed &mdash; it depresses. Release while still inside to log it; drag off before releasing to cancel. With the map aligned you throw up the screen, so the top quadrant is long, bottom is short. Tap the medallion for a ringer, the can for a +5 knockoff.</p>
+<p class="target-hint">Press and hold the ring where the disc landed &mdash; release inside to log, drag off to cancel. With the map aligned you throw up the screen: top is long, bottom is short. Corners are buttons &mdash; undo (top-left), ringer (bottom-left), +5 can (bottom-right); top-right shows throw progress.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
-
 </div>
 
 <script>
 (function(){
-  // ---- geometry (inches from centre; rings are concentric circles) ----
-  const M_TOP = 60;
-  const M_SIDE = 44;
-  const M_BOT = 60;
+  // ---- geometry (display, not to scale; real inches kept in the data model) ----
+  const R3=34, R2=88, R1=130, R_MISS=158;
+  const CX=168, CY=168, VB_W=336, VB_H=336;
 
-  // circular ring radii (mean of the old oval measurements)
-  const R3 = 25;    // 3-pt outer edge (whole cell)
-  const R2 = 63;    // 2-pt outer edge
-  const R1 = 117;   // 1-pt outer edge
-  const R_NEAR = 165; // near-miss band edge
-  const R_FAR = 215;  // far-miss band edge (taps beyond still count as far)
+  const QUADS=['long','right','short','left'];
+  function quadFor(dx,dy){ if(Math.abs(dy)>=Math.abs(dx)) return dy<0?'long':'short'; return dx<0?'left':'right'; }
+  const QUAD_ANGLE={ long:-Math.PI/2, right:0, short:Math.PI/2, left:Math.PI };
+  const CAN_BONUS=5;
 
-  const CX = M_SIDE + R_FAR;
-  const CY = M_TOP + R_FAR;
-  const VB_W = M_SIDE*2 + R_FAR*2;
-  const VB_H = M_TOP + M_BOT + R_FAR*2;
-
-  const QUADS = ['long','right','short','left'];
-  function quadFor(dx, dy){
-    if (Math.abs(dy) >= Math.abs(dx)) return dy < 0 ? 'long' : 'short';
-    return dx < 0 ? 'left' : 'right';
-  }
-
-  const OCTS = ['long','long_right','right','short_right','short','short_left','left','long_left'];
-  const OCT_ANGLE = {
-    long:-Math.PI/2, long_right:-Math.PI/4, right:0, short_right:Math.PI/4,
-    short:Math.PI/2, short_left:3*Math.PI/4, left:Math.PI, long_left:-3*Math.PI/4
+  const PALINDROMES={
+    '0,0,0,0,0':{bonus:-2,label:'0·0·0·0·0',penalty:true},
+    '1,1,1,1,1':{bonus:4,label:'1·1·1·1·1'},
+    '1,2,3,2,1':{bonus:4,label:'1·2·3·2·1'},
+    '2,2,2,2,2':{bonus:7,label:'2·2·2·2·2'},
+    '3,3,3,3,3':{bonus:12,label:'3·3·3·3·3'}
   };
-  function octFor(dx, dy){
-    let a = Math.atan2(dy, dx);
-    let idx = Math.round(a / (Math.PI/4));
-    const map = {0:'right',1:'short_right',2:'short',3:'short_left',
-                 4:'left','-4':'left','-1':'long_right','-2':'long','-3':'long_left'};
-    return map[idx];
-  }
-
-  const CAN_BONUS = 5;
-
-  // ---- palindrome station bonuses ----
-  // Only these exact 5-throw sequences pay out. Order matters (1,2,3,2,1).
-  // 0,0,0,0,0 is a penalty, not a bonus. Every other palindrome earns nothing.
-  const PALINDROMES = {
-    '0,0,0,0,0': { bonus:-2, label:'0·0·0·0·0', penalty:true },
-    '1,1,1,1,1': { bonus: 4, label:'1·1·1·1·1' },
-    '1,2,3,2,1': { bonus: 4, label:'1·2·3·2·1' },
-    '2,2,2,2,2': { bonus: 7, label:'2·2·2·2·2' },
-    '3,3,3,3,3': { bonus:12, label:'3·3·3·3·3' }
-  };
-  // list = throws for one station; returns the matching palindrome record or null.
   function palindromeFor(list){
-    if (!list || list.length !== 5) return null;
-    const key = list.slice().sort((a,b)=>a.throw-b.throw).map(t=>t.score).join(',');
-    return PALINDROMES[key] || null;
+    if(!list||list.length!==5) return null;
+    const key=list.slice().sort((a,b)=>a.throw-b.throw).map(t=>t.score).join(',');
+    return PALINDROMES[key]||null;
   }
 
-  const STATIONS = {
-    1:{bearing:246, dist:53}, 2:{bearing:184, dist:47}, 3:{bearing:207, dist:59},
-    4:{bearing:210, dist:84}, 5:{bearing:168, dist:77}, 6:{bearing:123, dist:68},
-    7:{bearing:56,  dist:52}, 8:{bearing:359, dist:71}, 9:{bearing:313, dist:104},
-    10:{bearing:302, dist:90}, 11:{bearing:281, dist:71}
-  };
-  const SKETCH_UP_BEARING = 180;
-
-  const PAL = {
-    tent:'#6E1417',
-    paper:'#F2E4C4',
-    paperDeep:'#E5D2AA',
-    ink:'#1C1410',
-    brass:'#C9922B',
-    brassDark:'#8A6212',
-    teal:'#1E5C5A',
-    prize:'#5B2A86',
-    dust:'#7A6A55'
+  const STATIONS={
+    1:{bearing:246,dist:53},2:{bearing:184,dist:47},3:{bearing:207,dist:59},
+    4:{bearing:210,dist:84},5:{bearing:168,dist:77},6:{bearing:123,dist:68},
+    7:{bearing:56,dist:52},8:{bearing:359,dist:71},9:{bearing:313,dist:104},
+    10:{bearing:302,dist:90},11:{bearing:281,dist:71}
   };
 
-  const CELLS = {
-    r1:  { long:'#F7DC24', right:'#F0A828', left:'#D9741E', short:'#B23410' },
-    r2:  { long:'#8FB8E8', right:'#5E86C8', left:'#5A4EA0', short:'#3A2A6B' },
-    near:{ long:'#CFC3A6', right:'#BCAA8A', left:'#A89880', short:'#8E7E66' },
-    far: { long:'#B7A98C', right:'#A2937A', left:'#8B7C64', short:'#6E6250' }
+  const PAL={ tent:'#6E1417',paper:'#F2E4C4',paperDeep:'#E5D2AA',ink:'#1C1410',brass:'#C9922B',brassDark:'#8A6212',teal:'#1E5C5A',prize:'#5B2A86',dust:'#7A6A55' };
+  const CELLS={
+    r1:{long:'#F7DC24',right:'#F0A828',left:'#D9741E',short:'#B23410'},
+    r2:{long:'#8FB8E8',right:'#5E86C8',left:'#5A4EA0',short:'#3A2A6B'},
+    miss:{long:'#CFC3A6',right:'#BCAA8A',left:'#A89880',short:'#8E7E66'}
   };
-  const C3_CENTER = '#241A4A';
-  const RINGER_COL = '#5B2A86';
+  const C3_CENTER='#241A4A', RINGER_COL='#5B2A86';
+  const CORNER={ undo:'#C0201C', complete:'#E08A2B', ringer:'#5B2A86', can:'#8E8578' };
 
-  function colorForScore(s){
-    return {10:RINGER_COL, 3:C3_CENTER, 2:CELLS.r2.left, 1:CELLS.r1.left, 0:'#8E7E66'}[s];
+  function colorForScore(s){ return {10:RINGER_COL,3:C3_CENTER,2:CELLS.r2.left,1:CELLS.r1.left,0:'#8E7E66'}[s]; }
+  function markerFill(){ return '#FFFFFF'; }
+
+  function bandFor(dist){ if(dist<=R3) return 'c3'; if(dist<=R2) return 'r2'; if(dist<=R1) return 'r1'; if(dist<=R_MISS) return 'miss'; return 'out'; }
+  function cellFor(dx,dy){
+    const dist=Math.hypot(dx,dy), band=bandFor(dist);
+    if(band==='out') return null;
+    if(band==='c3') return {band:'c3',quad:null,score:3};
+    if(band==='r2') return {band:'r2',quad:quadFor(dx,dy),score:2};
+    if(band==='r1') return {band:'r1',quad:quadFor(dx,dy),score:1};
+    return {band:'miss',quad:quadFor(dx,dy),score:0};
+  }
+  const BAND_MID={ c3:0, r2:(R3+R2)/2, r1:(R2+R1)/2, miss:(R1+R_MISS)/2 };
+  function cellCenter(band,quad){ if(band==='c3') return {dx:0,dy:0}; const r=BAND_MID[band],a=QUAD_ANGLE[quad]; return {dx:r*Math.cos(a),dy:r*Math.sin(a)}; }
+
+  function darken(hex,mult){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)); const[r,g,b]=p(hex); const d=v=>Math.max(0,Math.round(v*mult)).toString(16).padStart(2,'0'); return '#'+d(r)+d(g)+d(b); }
+  const PRESS_MULT=0.55;
+
+  // corner label anchors
+  const INSET=30;
+  function cornerCenterCan(hw,hh){
+    const reach=CX*Math.SQRT2, depth=reach-R_MISS, r=R_MISS+depth*0.52, k=1/Math.SQRT2;
+    let cx=CX+r*k, cy=CY+r*k, m=14;
+    cx=Math.min(cx,VB_W-m-hw); cy=Math.min(cy,VB_H-m-hh);
+    return {cx,cy};
   }
 
-  function markerFill(t){ return '#FFFFFF'; }
+  let state={ round:null, station:1, align:true, meta:{}, throws:[] };
+  const STORAGE_KEY='landing-session'; let storageAvailable=true;
 
-  function bandFor(dist){
-    if (dist <= R3) return 'c3';
-    if (dist <= R2) return 'r2';
-    if (dist <= R1) return 'r1';
-    if (dist <= R_NEAR) return 'near';
-    return 'far';
-  }
-
-  function cellFor(dx, dy){
-    const dist = Math.hypot(dx, dy);
-    const band = bandFor(dist);
-    if (band === 'c3') return { band:'c3', quad:null, score:3 };
-    if (band === 'r2' || band === 'r1'){
-      return { band, quad: quadFor(dx, dy), score: band === 'r2' ? 2 : 1 };
-    }
-    return { band, quad: octFor(dx, dy), score: 0 };
-  }
-
-  function scoreForPoint(dx, dy){
-    return cellFor(dx, dy).score;
-  }
-
-  const BAND_MID = { c3:0, r2:(R3+R2)/2, r1:(R2+R1)/2, near:(R1+R_NEAR)/2, far:(R_NEAR+R_FAR)/2 };
-  const QUAD_ANGLE = { long:-Math.PI/2, right:0, short:Math.PI/2, left:Math.PI };
-  function cellCenter(band, quad){
-    if (band === 'c3') return { dx:0, dy:0 };
-    const r = BAND_MID[band];
-    const a = (band === 'near' || band === 'far') ? OCT_ANGLE[quad] : QUAD_ANGLE[quad];
-    return { dx: r*Math.cos(a), dy: r*Math.sin(a) };
-  }
-
-  function mixHex(h1, h2){
-    const p = h => [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
-    const a = p(h1), b = p(h2);
-    return '#'+[0,1,2].map(i=>Math.round((a[i]+b[i])/2).toString(16).padStart(2,'0')).join('');
-  }
-  function missColor(band, oct){
-    const t = CELLS[band];
-    if (t[oct]) return t[oct];
-    const parts = oct.split('_');
-    return mixHex(t[parts[0]], t[parts[1]]);
-  }
-  function cellColor(band, quad){
-    if (band === 'c3') return C3_CENTER;
-    if (band === 'near' || band === 'far') return missColor(band, quad);
-    return CELLS[band][quad];
-  }
-
-  // darken a hex color for the "pressed" state
-  function darken(hex, mult){
-    const p = h => [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
-    const [r,g,b] = p(hex);
-    const d = v => Math.max(0, Math.round(v*mult)).toString(16).padStart(2,'0');
-    return '#'+d(r)+d(g)+d(b);
-  }
-  const PRESS_MULT = 0.55;
-
-  let state = {
-    round: null,
-    station: 1,
-    align: true,
-    meta: {},
-    throws: []
-  };
-
-  const STORAGE_KEY = 'landing-session';
-  let storageAvailable = true;
-
-  function storageBackend(){
-    try{
-      const t = '__probe__';
-      window.localStorage.setItem(t, '1');
-      window.localStorage.removeItem(t);
-      return window.localStorage;
-    }catch(e){
-      return null;
-    }
-  }
-
+  function storageBackend(){ try{const t='__probe__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage;}catch(e){return null;} }
   function loadState(){
-    const store = storageBackend();
-    if (!store){
-      storageAvailable = false;
-      showStorageNote();
-      document.getElementById('roundInput').value = '';
-      render();
-      return;
-    }
-    try{
-      const raw = store.getItem(STORAGE_KEY);
-      if (raw){
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.throws)){
-          state = parsed;
-          if (!state.meta) state.meta = {};
-          if (typeof state.align !== 'boolean') state.align = true;
-        }
-      }
-    }catch(e){ }
-    document.getElementById('roundInput').value = state.round || '';
-    render();
+    const store=storageBackend();
+    if(!store){ storageAvailable=false; showStorageNote(); document.getElementById('roundInput').value=''; render(); return; }
+    try{ const raw=store.getItem(STORAGE_KEY); if(raw){ const p=JSON.parse(raw); if(p&&Array.isArray(p.throws)){ state=p; if(!state.meta)state.meta={}; if(typeof state.align!=='boolean')state.align=true; } } }catch(e){}
+    document.getElementById('roundInput').value=state.round||''; render();
   }
+  function showStorageNote(){ const el=document.getElementById('storageNote'); if(el) el.style.display='block'; }
+  function saveState(){ if(!storageAvailable) return; const store=storageBackend(); if(!store){storageAvailable=false;showStorageNote();return;} try{store.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){storageAvailable=false;showStorageNote();} }
 
-  function showStorageNote(){
-    const el = document.getElementById('storageNote');
-    if (el) el.style.display = 'block';
-  }
+  function stampNow(round){ if(round===null||round==='')return; if(!state.meta)state.meta={}; if(state.meta[round])return; const n=new Date(),p=x=>String(x).padStart(2,'0'); state.meta[round]={date:`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`,time:`${p(n.getHours())}:${p(n.getMinutes())}`}; }
+  function stampEnd(round){ if(round===null||round==='')return; if(!state.meta)state.meta={}; if(!state.meta[round])state.meta[round]={}; const n=new Date(),p=x=>String(x).padStart(2,'0'); state.meta[round].endDate=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`; state.meta[round].endTime=`${p(n.getHours())}:${p(n.getMinutes())}`; }
+  function roundDurationMin(round){ const m=state.meta&&state.meta[round]; if(!m||!m.date||!m.time||!m.endDate||!m.endTime)return''; const s=new Date(`${m.date}T${m.time}:00`),e=new Date(`${m.endDate}T${m.endTime}:00`),d=Math.round((e-s)/60000); return d>=0?d:''; }
 
-  function saveState(){
-    if (!storageAvailable) return;
-    const store = storageBackend();
-    if (!store){ storageAvailable = false; showStorageNote(); return; }
-    try{
-      store.setItem(STORAGE_KEY, JSON.stringify(state));
-    }catch(e){
-      storageAvailable = false;
-      showStorageNote();
-    }
-  }
+  function throwsForStation(st){ return state.throws.filter(t=>t.station===st&&t.round===state.round); }
 
-  function metaFor(round){
-    if (round === null || round === '') return null;
-    if (!state.meta) state.meta = {};
-    return state.meta[round] || null;
-  }
-
-  function stampNow(round){
-    if (round === null || round === '') return;
-    if (!state.meta) state.meta = {};
-    if (state.meta[round]) return;
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    state.meta[round] = {
-      date: `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`,
-      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`
-    };
-  }
-
-  function stampEnd(round){
-    if (round === null || round === '') return;
-    if (!state.meta) state.meta = {};
-    if (!state.meta[round]) state.meta[round] = {};
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    state.meta[round].endDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
-    state.meta[round].endTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  }
-
-  function roundDurationMin(round){
-    const m = state.meta && state.meta[round];
-    if (!m || !m.date || !m.time || !m.endDate || !m.endTime) return '';
-    const start = new Date(`${m.date}T${m.time}:00`);
-    const end = new Date(`${m.endDate}T${m.endTime}:00`);
-    const diff = Math.round((end - start) / 60000);
-    return diff >= 0 ? diff : '';
-  }
-
-  function throwsForStation(st){
-    return state.throws.filter(t => t.station === st && t.round === state.round);
-  }
-
-  // ---- cell registry, rebuilt each buildTarget() call ----
-  let cellEls = {}; // key "band|quad" -> {el, baseColor}
-
-  function cellKey(band, quad){ return `${band}|${quad||''}`; }
+  let cellEls={}, cornerEls={};
+  function cellKey(band,quad){ return `${band}|${quad||''}`; }
+  const UNDO_PATH="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z";
 
   function buildTarget(){
-    const svg = document.getElementById('target');
-    svg.setAttribute('viewBox', `0 0 ${VB_W} ${VB_H}`);
-    svg.style.aspectRatio = `${VB_W} / ${VB_H}`;
-    svg.innerHTML = '';
-    cellEls = {};
-    const ns = 'http://www.w3.org/2000/svg';
+    const svg=document.getElementById('target');
+    svg.setAttribute('viewBox',`0 0 ${VB_W} ${VB_H}`); svg.style.aspectRatio='1 / 1'; svg.innerHTML='';
+    cellEls={}; cornerEls={};
+    const ns='http://www.w3.org/2000/svg';
+    const mk=t=>document.createElementNS(ns,t);
 
-    const bg = document.createElementNS(ns,'rect');
-    bg.setAttribute('x',0); bg.setAttribute('y',0);
-    bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H);
-    bg.setAttribute('fill', PAL.paper);
-    svg.appendChild(bg);
+    const bg=mk('rect'); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H); bg.setAttribute('fill',PAL.paper); svg.appendChild(bg);
 
-    const scene = document.createElementNS(ns,'g');
-    scene.setAttribute('id','scene');
-    svg.appendChild(scene);
+    // corner fills (behind rings; masked to corner triangles)
+    const cornerRect=(id,x,y,fill)=>{ const r=mk('rect'); r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',CX); r.setAttribute('height',CY); r.setAttribute('fill',fill); svg.appendChild(r); cornerEls[id]={el:r,baseColor:fill}; };
+    cornerRect('undo',0,0,CORNER.undo);
+    cornerRect('complete',CX,0,CORNER.complete);
+    cornerRect('ringer',0,CY,CORNER.ringer);
+    cornerRect('can',CX,CY,CORNER.can);
 
-    const wedge = (r_in, r_out, a0, a1) => {
-      const p0 = [CX + r_out*Math.cos(a0), CY + r_out*Math.sin(a0)];
-      const p1 = [CX + r_out*Math.cos(a1), CY + r_out*Math.sin(a1)];
-      const p2 = [CX + r_in*Math.cos(a1),  CY + r_in*Math.sin(a1)];
-      const p3 = [CX + r_in*Math.cos(a0),  CY + r_in*Math.sin(a0)];
-      const large = (a1 - a0) > Math.PI ? 1 : 0;
-      return `M ${p0[0]} ${p0[1]} A ${r_out} ${r_out} 0 ${large} 1 ${p1[0]} ${p1[1]} `+
-             `L ${p2[0]} ${p2[1]} A ${r_in} ${r_in} 0 ${large} 0 ${p3[0]} ${p3[1]} Z`;
-    };
-    const QRANGE = {
-      long:  [-3*Math.PI/4, -Math.PI/4],
-      right: [-Math.PI/4,    Math.PI/4],
-      short: [ Math.PI/4,   3*Math.PI/4],
-      left:  [ 3*Math.PI/4, 5*Math.PI/4]
-    };
+    // paper disc behind rings
+    const disc=mk('circle'); disc.setAttribute('cx',CX); disc.setAttribute('cy',CY); disc.setAttribute('r',R_MISS); disc.setAttribute('fill',PAL.paper); svg.appendChild(disc);
 
-    const addWedge = (r_in, r_out, quad, fill, band) => {
-      const [a0,a1] = QRANGE[quad];
-      const path = document.createElementNS(ns,'path');
-      path.setAttribute('d', wedge(r_in, r_out, a0, a1));
-      path.setAttribute('fill', fill);
-      path.setAttribute('stroke','none');
-      scene.appendChild(path);
-      cellEls[cellKey(band, quad)] = { el:path, baseColor:fill };
-      return path;
-    };
+    const scene=mk('g'); scene.setAttribute('id','scene'); svg.appendChild(scene);
+    const wedge=(ri,ro,a0,a1)=>{ const p=(r,a)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)]; const [x0,y0]=p(ro,a0),[x1,y1]=p(ro,a1),[x2,y2]=p(ri,a1),[x3,y3]=p(ri,a0); const L=(a1-a0)>Math.PI?1:0; return `M ${x0} ${y0} A ${ro} ${ro} 0 ${L} 1 ${x1} ${y1} L ${x2} ${y2} A ${ri} ${ri} 0 ${L} 0 ${x3} ${y3} Z`; };
+    const QRANGE={ long:[-3*Math.PI/4,-Math.PI/4], right:[-Math.PI/4,Math.PI/4], short:[Math.PI/4,3*Math.PI/4], left:[3*Math.PI/4,5*Math.PI/4] };
+    const addWedge=(ri,ro,quad,fill,band)=>{ const[a0,a1]=QRANGE[quad]; const path=mk('path'); path.setAttribute('d',wedge(ri,ro,a0,a1)); path.setAttribute('fill',fill); scene.appendChild(path); cellEls[cellKey(band,quad)]={el:path,baseColor:fill}; };
 
-    QUADS.forEach(q => addWedge(R2, R1, q, CELLS.r1[q], 'r1'));
-    QUADS.forEach(q => addWedge(R3, R2, q, CELLS.r2[q], 'r2'));
+    QUADS.forEach(q=>addWedge(R1,R_MISS,q,CELLS.miss[q],'miss'));
+    QUADS.forEach(q=>addWedge(R2,R1,q,CELLS.r1[q],'r1'));
+    QUADS.forEach(q=>addWedge(R3,R2,q,CELLS.r2[q],'r2'));
+    const c3=mk('circle'); c3.setAttribute('cx',CX); c3.setAttribute('cy',CY); c3.setAttribute('r',R3); c3.setAttribute('fill',C3_CENTER); scene.appendChild(c3); cellEls[cellKey('c3',null)]={el:c3,baseColor:C3_CENTER};
 
-    const c3 = document.createElementNS(ns,'circle');
-    c3.setAttribute('cx',CX); c3.setAttribute('cy',CY); c3.setAttribute('r',R3);
-    c3.setAttribute('fill', C3_CENTER);
-    scene.appendChild(c3);
-    cellEls[cellKey('c3', null)] = { el:c3, baseColor:C3_CENTER };
+    [R3,R2,R1,R_MISS].forEach(r=>{ const c=mk('circle'); c.setAttribute('cx',CX); c.setAttribute('cy',CY); c.setAttribute('r',r); c.setAttribute('fill','none'); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width', r<=R1?'1.6':'2'); scene.appendChild(c); });
+    const pole=mk('circle'); pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6); pole.setAttribute('fill','#FFFFFF'); pole.setAttribute('opacity','0.85'); scene.appendChild(pole);
 
-    const octWedge = (r_in, r_out, oct, band) => {
-      const a = OCT_ANGLE[oct];
-      const a0 = a - Math.PI/8, a1 = a + Math.PI/8;
-      const path = document.createElementNS(ns,'path');
-      path.setAttribute('d', wedge(r_in, r_out, a0, a1));
-      const fill = missColor(band, oct);
-      path.setAttribute('fill', fill);
-      path.setAttribute('stroke','none');
-      scene.appendChild(path);
-      cellEls[cellKey(band, oct)] = { el:path, baseColor:fill };
-    };
-    OCTS.forEach(o => octWedge(R1, R_NEAR, o, 'near'));
-    OCTS.forEach(o => octWedge(R_NEAR, R_FAR, o, 'far'));
+    const flash=mk('path'); flash.setAttribute('id','cellFlash'); flash.setAttribute('fill','#FFFFFF'); flash.setAttribute('opacity','0'); flash.setAttribute('pointer-events','none'); scene.appendChild(flash);
 
-    [R3,R2,R1,R_NEAR,R_FAR].forEach(r=>{
-      const c = document.createElementNS(ns,'circle');
-      c.setAttribute('cx',CX); c.setAttribute('cy',CY); c.setAttribute('r',r);
-      c.setAttribute('fill','none'); c.setAttribute('stroke', PAL.ink);
-      c.setAttribute('stroke-width', r<=R1 ? '1.6' : '1.1');
-      c.setAttribute('opacity', r<=R1 ? '1' : '0.6');
-      scene.appendChild(c);
-    });
-
-    const pole = document.createElementNS(ns,'circle');
-    pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6);
-    pole.setAttribute('fill','#FFFFFF'); pole.setAttribute('opacity','0.8');
-    scene.appendChild(pole);
-
-    const you = document.createElementNS(ns,'g');
-    you.setAttribute('id','youMarker');
-    you.style.display = 'none';
-    const tri = document.createElementNS(ns,'path');
-    tri.setAttribute('d', `M ${CX-9} ${VB_H-20} L ${CX+9} ${VB_H-20} L ${CX} ${VB_H-34} Z`);
-    tri.setAttribute('fill', PAL.teal);
-    you.appendChild(tri);
-    const youTxt = document.createElementNS(ns,'text');
-    youTxt.setAttribute('id','youText');
-    youTxt.setAttribute('x', CX); youTxt.setAttribute('y', VB_H-8);
-    youTxt.setAttribute('text-anchor','middle');
-    youTxt.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    youTxt.setAttribute('font-size','10');
-    youTxt.setAttribute('font-weight','700');
-    youTxt.setAttribute('letter-spacing','1.2');
-    youTxt.setAttribute('fill', PAL.teal);
-    you.appendChild(youTxt);
-    svg.appendChild(you);
-
-    // confirm-flash overlay (pops white briefly on release-inside)
-    const flash = document.createElementNS(ns,'path');
-    flash.setAttribute('id','cellFlash');
-    flash.setAttribute('fill', '#FFFFFF');
-    flash.setAttribute('opacity','0');
-    flash.setAttribute('pointer-events','none');
-    scene.appendChild(flash);
-
-    const btnR = R3;
-    const pad = 6;
-    const ck = (x,y,r)=>{ const c=document.createElementNS(ns,'circle');
-      c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',r); return c; };
-
-    const undo = document.createElementNS(ns,'g');
-    undo.setAttribute('id','undoBtn'); undo.style.cursor='pointer';
-    const ux = btnR+pad, uy = btnR+pad;
-    const ub = ck(ux,uy,btnR); ub.setAttribute('fill','#C0201C');
-    ub.setAttribute('stroke','#7A0F0C'); ub.setAttribute('stroke-width','2.5');
-    undo.appendChild(ub);
-    // chunky counterclockwise undo arrow: thick filled arc band + solid triangular head
-    (function(){
-      const rOut = btnR*0.62;
-      const rIn  = rOut - btnR*0.24;
-      const startDeg = 35;
-      const endDeg = -230;
-      const toRad = d => d * Math.PI/180;
-      const sweepDeg = startDeg - endDeg;
-      const largeArc = sweepDeg > 180 ? 1 : 0;
-
-      const a0 = toRad(startDeg), a1 = toRad(endDeg);
-      const outerA = [ux + rOut*Math.cos(a0), uy + rOut*Math.sin(a0)];
-      const outerB = [ux + rOut*Math.cos(a1), uy + rOut*Math.sin(a1)];
-      const innerB = [ux + rIn*Math.cos(a1),  uy + rIn*Math.sin(a1)];
-      const innerA = [ux + rIn*Math.cos(a0),  uy + rIn*Math.sin(a0)];
-      const bandPath = `M ${outerA[0]} ${outerA[1]} A ${rOut} ${rOut} 0 ${largeArc} 0 ${outerB[0]} ${outerB[1]} `+
-                        `L ${innerB[0]} ${innerB[1]} A ${rIn} ${rIn} 0 ${largeArc} 1 ${innerA[0]} ${innerA[1]} Z`;
-
-      const band = document.createElementNS(ns,'path');
-      band.setAttribute('d', bandPath);
-      band.setAttribute('fill', '#FFFFFF'); band.setAttribute('stroke','none');
-      undo.appendChild(band);
-
-      // arrowhead at the leading end, tangent to ccw travel: (sin, -cos)
-      const endRad = toRad(endDeg);
-      const midR = (rOut+rIn)/2;
-      const midX = ux + midR*Math.cos(endRad), midY = uy + midR*Math.sin(endRad);
-      const tx = Math.sin(endRad), ty = -Math.cos(endRad);
-      const px = -ty, py = tx;
-      const headLen = (rOut-rIn)*2.8, headWidth = (rOut-rIn)*3.4;
-      const tipX = midX + tx*headLen*0.5,  tipY = midY + ty*headLen*0.5;
-      const baseX = midX - tx*headLen*0.5, baseY = midY - ty*headLen*0.5;
-      const b1x = baseX + px*headWidth/2, b1y = baseY + py*headWidth/2;
-      const b2x = baseX - px*headWidth/2, b2y = baseY - py*headWidth/2;
-
-      const uhead = document.createElementNS(ns,'path');
-      uhead.setAttribute('d', `M ${tipX} ${tipY} L ${b1x} ${b1y} L ${b2x} ${b2y} Z`);
-      uhead.setAttribute('fill', '#FFFFFF'); uhead.setAttribute('stroke','none');
-      undo.appendChild(uhead);
+    // ---- corner labels (static overlay) ----
+    // UNDO (TL)
+    (function(){ const ux=INSET+6,uy=INSET-2,us=1.45;
+      const g=mk('g'); g.setAttribute('transform',`translate(${ux-12*us} ${uy-12*us}) scale(${us})`);
+      const p=mk('path'); p.setAttribute('d',UNDO_PATH); p.setAttribute('fill','#FFFFFF'); g.appendChild(p); svg.appendChild(g);
+      const t=mk('text'); t.setAttribute('x',ux); t.setAttribute('y',uy+24); t.setAttribute('text-anchor','middle'); t.setAttribute('font-family',"'Saira Condensed',sans-serif"); t.setAttribute('font-size','9'); t.setAttribute('font-weight','700'); t.setAttribute('letter-spacing','1.5'); t.setAttribute('fill','#FFFFFF'); t.textContent='UNDO'; svg.appendChild(t);
     })();
-    undo.addEventListener('click', (e)=>{ e.stopPropagation(); undoLast(); });
-    svg.appendChild(undo);
+    // THROW progress (TR) — filled by updateThrowDots
+    const comp=mk('g'); comp.setAttribute('id','completeCorner'); svg.appendChild(comp);
+    // RINGER (BL)
+    (function(){ const rx=INSET+8,ry=VB_H-INSET-8;
+      const t=mk('text'); t.setAttribute('x',rx); t.setAttribute('y',ry); t.setAttribute('text-anchor','middle'); t.setAttribute('font-family',"'Rye',serif"); t.setAttribute('font-size','22'); t.setAttribute('fill',PAL.brass); t.textContent='10'; svg.appendChild(t);
+      const s=mk('text'); s.setAttribute('x',rx); s.setAttribute('y',ry+16); s.setAttribute('text-anchor','middle'); s.setAttribute('font-family',"'Saira Condensed',sans-serif"); s.setAttribute('font-size','9'); s.setAttribute('font-weight','700'); s.setAttribute('letter-spacing','1.5'); s.setAttribute('fill',PAL.paper); s.textContent='RINGER'; svg.appendChild(s);
+    })();
+    // CAN (BR) dashed box
+    (function(){ const bw=42,bh=33,{cx,cy}=cornerCenterCan(bw/2,bh/2);
+      const box=mk('rect'); box.setAttribute('id','canBox'); box.setAttribute('x',cx-bw/2); box.setAttribute('y',cy-bh/2); box.setAttribute('width',bw); box.setAttribute('height',bh); box.setAttribute('rx',6); box.setAttribute('fill','none'); box.setAttribute('stroke',PAL.paper); box.setAttribute('stroke-width','2.4'); box.setAttribute('stroke-dasharray','6,4'); svg.appendChild(box);
+      const t=mk('text'); t.setAttribute('id','canPlus'); t.setAttribute('x',cx); t.setAttribute('y',cy+2); t.setAttribute('text-anchor','middle'); t.setAttribute('font-family',"'Rye',serif"); t.setAttribute('font-size','15'); t.setAttribute('fill',PAL.paper); t.textContent='+5'; svg.appendChild(t);
+      const s=mk('text'); s.setAttribute('id','canSub'); s.setAttribute('x',cx); s.setAttribute('y',cy+11); s.setAttribute('text-anchor','middle'); s.setAttribute('font-family',"'Saira Condensed',sans-serif"); s.setAttribute('font-size','6.5'); s.setAttribute('font-weight','700'); s.setAttribute('letter-spacing','1.1'); s.setAttribute('fill',PAL.paper); s.textContent='CAN'; svg.appendChild(s);
+    })();
 
-    const td = document.createElementNS(ns,'g');
-    td.setAttribute('id','throwDots');
-    svg.appendChild(td);
-
-    const ring = document.createElementNS(ns,'g');
-    ring.setAttribute('id','ringerBtn'); ring.style.cursor='pointer';
-    const rx = btnR+pad, ry = VB_H - btnR - pad;
-    const rb = ck(rx,ry,btnR); rb.setAttribute('fill', RINGER_COL);
-    rb.setAttribute('stroke', PAL.brass); rb.setAttribute('stroke-width','2.5');
-    ring.appendChild(rb);
-    const rt = document.createElementNS(ns,'text');
-    rt.setAttribute('x',rx); rt.setAttribute('y',ry-1); rt.setAttribute('text-anchor','middle');
-    rt.setAttribute('font-family',"'Rye', serif"); rt.setAttribute('font-size','15');
-    rt.setAttribute('fill', PAL.brass); rt.textContent='10';
-    ring.appendChild(rt);
-    const rs = document.createElementNS(ns,'text');
-    rs.setAttribute('x',rx); rs.setAttribute('y',ry+11); rs.setAttribute('text-anchor','middle');
-    rs.setAttribute('font-family',"'Saira Condensed', sans-serif"); rs.setAttribute('font-size','7');
-    rs.setAttribute('font-weight','700'); rs.setAttribute('letter-spacing','1'); rs.setAttribute('fill', PAL.paper);
-    rs.textContent='RINGER';
-    ring.appendChild(rs);
-    ring.addEventListener('click', (e)=>{ e.stopPropagation(); tapRinger(); });
-    svg.appendChild(ring);
-
-    const can = document.createElementNS(ns,'g');
-    can.setAttribute('id','canBtn'); can.style.cursor='pointer';
-    const cw=54, ch=44, cxx=VB_W - cw - pad, cyy=VB_H - ch - pad;
-    const cbox = document.createElementNS(ns,'rect');
-    cbox.setAttribute('id','canBox');
-    cbox.setAttribute('x',cxx); cbox.setAttribute('y',cyy);
-    cbox.setAttribute('width',cw); cbox.setAttribute('height',ch); cbox.setAttribute('rx',6);
-    cbox.setAttribute('fill','none'); cbox.setAttribute('stroke', PAL.tent);
-    cbox.setAttribute('stroke-width','2.5'); cbox.setAttribute('stroke-dasharray','7,4');
-    can.appendChild(cbox);
-    const ct = document.createElementNS(ns,'text');
-    ct.setAttribute('id','canPlus');
-    ct.setAttribute('x',cxx+cw/2); ct.setAttribute('y',cyy+ch/2-1); ct.setAttribute('text-anchor','middle');
-    ct.setAttribute('font-family',"'Rye', serif"); ct.setAttribute('font-size','16'); ct.setAttribute('fill', PAL.tent);
-    ct.textContent='+5';
-    can.appendChild(ct);
-    const cs = document.createElementNS(ns,'text');
-    cs.setAttribute('id','canSub');
-    cs.setAttribute('x',cxx+cw/2); cs.setAttribute('y',cyy+ch/2+13); cs.setAttribute('text-anchor','middle');
-    cs.setAttribute('font-family',"'Saira Condensed', sans-serif"); cs.setAttribute('font-size','8');
-    cs.setAttribute('font-weight','700'); cs.setAttribute('letter-spacing','1.4'); cs.setAttribute('fill', PAL.tent);
-    cs.textContent='CAN';
-    can.appendChild(cs);
-    can.addEventListener('click', (e)=>{ e.stopPropagation(); toggleCanBonus(); });
-    svg.appendChild(can);
-
-    // ---- press / depress / cancel / confirm interaction on scoring cells ----
-    let activeKey = null;
-
-    function svgPointFromEvent(evt){
-      const rect = svg.getBoundingClientRect();
-      const t = evt.touches && evt.touches.length ? evt.touches[0]
-              : (evt.changedTouches && evt.changedTouches.length ? evt.changedTouches[0] : evt);
-      const sx = (t.clientX - rect.left) / rect.width * VB_W;
-      const sy = (t.clientY - rect.top) / rect.height * VB_H;
-      return {sx, sy};
-    }
-
-    function groundCellAt(sx, sy){
-      const g = unrotate(sx, sy);
-      const dx = g.x - CX, dy = g.y - CY;
-      const dist = Math.hypot(dx, dy);
-      if (dist > R_FAR) return null;
-      return cellFor(dx, dy);
-    }
-
-    function pressCell(key){
-      const c = cellEls[key];
-      if (!c) return;
-      c.el.setAttribute('fill', darken(c.baseColor, PRESS_MULT));
-    }
-    function revertCell(key){
-      const c = cellEls[key];
-      if (!c) return;
-      c.el.setAttribute('fill', c.baseColor);
-    }
-    function confirmCell(key){
-      const c = cellEls[key];
-      if (!c) return;
-      c.el.style.transition = 'none';
-      c.el.setAttribute('fill', '#FFFFFF');
-      void c.el.getBoundingClientRect();
-      c.el.style.transition = 'fill 260ms ease-out';
-      c.el.setAttribute('fill', c.baseColor);
-    }
+    // ---- interaction ----
+    let activeKey=null, activeCorner=null;
+    function svgPt(evt){ const rect=svg.getBoundingClientRect(); const t=evt.touches&&evt.touches.length?evt.touches[0]:(evt.changedTouches&&evt.changedTouches.length?evt.changedTouches[0]:evt); return {sx:(t.clientX-rect.left)/rect.width*VB_W, sy:(t.clientY-rect.top)/rect.height*VB_H}; }
+    function cornerAt(sx,sy){ const dx=sx-CX,dy=sy-CY; if(Math.hypot(dx,dy)<=R_MISS) return null; return dy<0?(dx<0?'undo':'complete'):(dx<0?'ringer':'can'); }
+    function groundCellAt(sx,sy){ const g=unrotate(sx,sy),dx=g.x-CX,dy=g.y-CY; if(Math.hypot(dx,dy)>R_MISS) return null; return cellFor(dx,dy); }
+    function pressCell(k){ const c=cellEls[k]; if(c) c.el.setAttribute('fill',darken(c.baseColor,PRESS_MULT)); }
+    function revertCell(k){ const c=cellEls[k]; if(c) c.el.setAttribute('fill',c.baseColor); }
+    function confirmCell(k){ const c=cellEls[k]; if(!c)return; c.el.style.transition='none'; c.el.setAttribute('fill','#FFFFFF'); void c.el.getBoundingClientRect(); c.el.style.transition='fill 260ms ease-out'; c.el.setAttribute('fill',c.baseColor); }
+    function pressCorner(id){ const c=cornerEls[id]; if(c&&id!=='complete') c.el.setAttribute('fill',darken(c.baseColor,PRESS_MULT)); }
+    function revertCorner(id){ const c=cornerEls[id]; if(c) c.el.setAttribute('fill',c.baseColor); }
 
     function onDown(evt){
-      const t = evt.target;
-      if (t && t.closest && (t.closest('#undoBtn') || t.closest('#ringerBtn') || t.closest('#canBtn'))) return;
-      if (currentStationFull()) return;
-      if (state.round === null || state.round === ''){ flashStationSummary('Enter a round number first.'); return; }
+      const {sx,sy}=svgPt(evt);
+      const corner=cornerAt(sx,sy);
+      if(corner){ evt.preventDefault(); activeCorner=corner; pressCorner(corner); return; }
+      if(currentStationFull()) return;
+      if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; }
       evt.preventDefault();
-      const {sx, sy} = svgPointFromEvent(evt);
-      const cell = groundCellAt(sx, sy);
-      if (!cell) return;
-      const key = cellKey(cell.band, cell.quad);
-      activeKey = key;
-      pressCell(key);
+      const cell=groundCellAt(sx,sy); if(!cell) return;
+      const key=cellKey(cell.band,cell.quad); activeKey=key; pressCell(key);
     }
-    function onMoveEvt(evt){
-      if (!activeKey) return;
-      evt.preventDefault();
-      const {sx, sy} = svgPointFromEvent(evt);
-      const cell = groundCellAt(sx, sy);
-      const key = cell ? cellKey(cell.band, cell.quad) : null;
-      if (key !== activeKey){
-        revertCell(activeKey);
-        activeKey = null;
-      }
+    function onMove(evt){
+      if(activeCorner){ evt.preventDefault(); const {sx,sy}=svgPt(evt); if(cornerAt(sx,sy)!==activeCorner){ revertCorner(activeCorner); activeCorner=null; } return; }
+      if(!activeKey) return; evt.preventDefault();
+      const {sx,sy}=svgPt(evt); const cell=groundCellAt(sx,sy); const key=cell?cellKey(cell.band,cell.quad):null;
+      if(key!==activeKey){ revertCell(activeKey); activeKey=null; }
     }
     function onUp(evt){
-      if (!activeKey) return;
-      evt.preventDefault();
-      const key = activeKey;
-      activeKey = null;
-      const c = cellEls[key];
-      if (!c) return;
-      confirmCell(key);
-      const [band, quad] = key.split('|');
-      const cell = { band, quad: quad || null, score: band==='c3'?3 : band==='r2'?2 : band==='r1'?1 : 0 };
-      const center = cellCenter(cell.band, cell.quad);
-      logThrow(cell.score, Math.round((CX + center.dx)*10)/10, Math.round((CY + center.dy)*10)/10,
-               cell.band, cell.quad);
+      if(activeCorner){ evt.preventDefault(); const id=activeCorner; activeCorner=null; revertCorner(id);
+        if(id==='undo') undoLast(); else if(id==='ringer') tapRinger(); else if(id==='can') toggleCanBonus(); return; }
+      if(!activeKey) return; evt.preventDefault();
+      const key=activeKey; activeKey=null; if(!cellEls[key]) return; confirmCell(key);
+      const [band,quad]=key.split('|'); const score=band==='c3'?3:band==='r2'?2:band==='r1'?1:0;
+      const c=cellCenter(band,quad||null);
+      logThrow(score, Math.round((CX+c.dx)*10)/10, Math.round((CY+c.dy)*10)/10, band, quad||null);
     }
-    function onCancelEvt(){
-      if (!activeKey) return;
-      revertCell(activeKey);
-      activeKey = null;
-    }
+    function onCancel(){ if(activeCorner){ revertCorner(activeCorner); activeCorner=null; } if(activeKey){ revertCell(activeKey); activeKey=null; } }
 
-    svg.addEventListener('touchstart', onDown, {passive:false});
-    svg.addEventListener('touchmove', onMoveEvt, {passive:false});
-    svg.addEventListener('touchend', onUp, {passive:false});
-    svg.addEventListener('touchcancel', onCancelEvt, {passive:false});
-    svg.addEventListener('mousedown', onDown);
-    svg.addEventListener('mousemove', onMoveEvt);
-    svg.addEventListener('mouseup', onUp);
-    svg.addEventListener('mouseleave', onCancelEvt);
+    svg.addEventListener('touchstart',onDown,{passive:false});
+    svg.addEventListener('touchmove',onMove,{passive:false});
+    svg.addEventListener('touchend',onUp,{passive:false});
+    svg.addEventListener('touchcancel',onCancel,{passive:false});
+    svg.addEventListener('mousedown',onDown);
+    svg.addEventListener('mousemove',onMove);
+    svg.addEventListener('mouseup',onUp);
+    svg.addEventListener('mouseleave',onCancel);
   }
 
-  function sceneRotation(){
-    if (!state.align) return 0;
-    const st = STATIONS[state.station];
-    if (!st) return 0;
-    return 180 - st.bearing;
-  }
-
-  function applyRotation(){
-    const phi = sceneRotation();
-    const scene = document.getElementById('scene');
-    if (scene) scene.setAttribute('transform', `rotate(${phi} ${CX} ${CY})`);
-    const you = document.getElementById('youMarker');
-    const txt = document.getElementById('youText');
-    if (you){
-      if (state.align && STATIONS[state.station]){
-        you.style.display = '';
-        txt.textContent = `YOU · ${STATIONS[state.station].dist} FT`;
-      } else {
-        you.style.display = 'none';
-      }
-    }
-  }
-
-  function unrotate(x, y){
-    const phi = sceneRotation();
-    if (!phi) return {x, y};
-    const a = -phi * Math.PI/180;
-    const dx = x - CX, dy = y - CY;
-    return {
-      x: CX + dx*Math.cos(a) - dy*Math.sin(a),
-      y: CY + dx*Math.sin(a) + dy*Math.cos(a)
-    };
-  }
+  function sceneRotation(){ if(!state.align) return 0; const st=STATIONS[state.station]; if(!st) return 0; return 180-st.bearing; }
+  function applyRotation(){ const phi=sceneRotation(); const scene=document.getElementById('scene'); if(scene) scene.setAttribute('transform',`rotate(${phi} ${CX} ${CY})`); }
+  function unrotate(x,y){ const phi=sceneRotation(); if(!phi) return {x,y}; const a=-phi*Math.PI/180,dx=x-CX,dy=y-CY; return {x:CX+dx*Math.cos(a)-dy*Math.sin(a), y:CY+dx*Math.sin(a)+dy*Math.cos(a)}; }
 
   function updateTally(){
-    const list = throwsForStation(state.station);
-    const last = list.length ? list[list.length-1] : null;
-    const canOn = !!(last && last.bonus);
-    const box = document.getElementById('canBox');
-    const plus = document.getElementById('canPlus');
-    const sub = document.getElementById('canSub');
-    if (box){
-      box.setAttribute('fill', canOn ? PAL.tent : 'none');
-      box.setAttribute('stroke-dasharray', canOn ? 'none' : '7,4');
-    }
-    if (plus) plus.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
-    if (sub) sub.setAttribute('fill', canOn ? PAL.paper : PAL.tent);
+    const list=throwsForStation(state.station); const last=list.length?list[list.length-1]:null; const canOn=!!(last&&last.bonus);
+    const cc=cornerEls['can']; if(cc) cc.el.setAttribute('fill', canOn?PAL.tent:CORNER.can);
+    const box=document.getElementById('canBox'); if(box){ box.setAttribute('stroke-dasharray', canOn?'none':'6,4'); box.setAttribute('fill', canOn?'rgba(0,0,0,0.18)':'none'); }
   }
 
   function drawMarkers(){
-    const scene = document.getElementById('scene');
-    let g = document.getElementById('markerGroup');
-    if (g) g.remove();
-    const ns = 'http://www.w3.org/2000/svg';
-    g = document.createElementNS(ns,'g');
-    g.setAttribute('id','markerGroup');
-    if (scene) scene.appendChild(g);
-
-    const showAll = document.getElementById('showAllToggle').checked;
-    const list = showAll ? state.throws.filter(t=>t.round===state.round) : throwsForStation(state.station);
-
-    const seen = {};
-    list.forEach(t=>{
-      if (t.x === null || t.y === null) return;
-      const key = `${t.x},${t.y}`;
-      seen[key] = (seen[key]||0);
-      const n = seen[key]++;
-      let ox=0, oy=0;
-      if (n>0){ const a=n*2.4; ox=Math.cos(a)*4.2*Math.ceil(n/6); oy=Math.sin(a)*4.2*Math.ceil(n/6); }
-      const c = document.createElementNS(ns,'circle');
-      c.setAttribute('cx', t.x+ox); c.setAttribute('cy', t.y+oy); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', markerFill(t));
-      c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
-      c.setAttribute('opacity', showAll && t.station !== state.station ? '0.45' : '0.95');
-      g.appendChild(c);
-      const lbl = document.createElementNS(ns,'text');
-      lbl.setAttribute('x', t.x+ox); lbl.setAttribute('y', t.y+oy+2.4);
-      lbl.setAttribute('text-anchor','middle');
-      lbl.setAttribute('font-family',"'Saira Condensed', sans-serif"); lbl.setAttribute('font-size','6');
-      lbl.setAttribute('fill', PAL.ink);
-      lbl.setAttribute('font-weight','700');
-      lbl.textContent = t.throw;
-      g.appendChild(lbl);
+    const scene=document.getElementById('scene'); let g=document.getElementById('markerGroup'); if(g) g.remove();
+    const ns='http://www.w3.org/2000/svg'; g=document.createElementNS(ns,'g'); g.setAttribute('id','markerGroup'); if(scene) scene.appendChild(g);
+    const showAll=document.getElementById('showAllToggle').checked;
+    const list=showAll?state.throws.filter(t=>t.round===state.round):throwsForStation(state.station);
+    const seen={};
+    list.forEach(t=>{ if(t.x===null||t.y===null) return; const key=`${t.x},${t.y}`; seen[key]=seen[key]||0; const n=seen[key]++; let ox=0,oy=0; if(n>0){const a=n*2.4; ox=Math.cos(a)*4.2*Math.ceil(n/6); oy=Math.sin(a)*4.2*Math.ceil(n/6);} 
+      const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',t.x+ox); c.setAttribute('cy',t.y+oy); c.setAttribute('r',5.5); c.setAttribute('fill',markerFill()); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width','1.4'); c.setAttribute('opacity', showAll&&t.station!==state.station?'0.45':'0.95'); g.appendChild(c);
+      const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',t.x+ox); lbl.setAttribute('y',t.y+oy+2.4); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-family',"'Saira Condensed',sans-serif"); lbl.setAttribute('font-size','6'); lbl.setAttribute('fill',PAL.ink); lbl.setAttribute('font-weight','700'); lbl.textContent=t.throw; g.appendChild(lbl);
     });
   }
 
-  function currentStationFull(){
-    return throwsForStation(state.station).length >= 5;
-  }
-
-  function logThrow(score, x, y, band, quad){
-    if (currentStationFull()) return;
-    const throwNum = throwsForStation(state.station).length + 1;
-    stampNow(state.round);
-    state.throws.push({
-      round: state.round, station: state.station, throw: throwNum,
-      x, y, score, band: band||null, quad: quad||null, bonus: 0
-    });
-    if (state.station === 11 && throwNum === 5) stampEnd(state.round);
-    saveState();
-    render();
-  }
-
-  function throwPoints(t){
-    return t.score + (t.bonus || 0);
-  }
-
-  function tapRinger(){
-    if (currentStationFull()) return;
-    if (state.round === null || state.round === ''){ flashStationSummary('Enter a round number first.'); return; }
-    logThrow(10, null, null, null, null);
-  }
-
+  function currentStationFull(){ return throwsForStation(state.station).length>=5; }
+  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const throwNum=throwsForStation(state.station).length+1; stampNow(state.round); state.throws.push({round:state.round,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if(state.station===11&&throwNum===5) stampEnd(state.round); saveState(); render(); }
+  function throwPoints(t){ return t.score+(t.bonus||0); }
+  function tapRinger(){ if(currentStationFull()) return; if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; } logThrow(10,null,null,null,null); }
   function undoLast(){ undo(); }
-
-  function toggleCanBonus(){
-    const list = throwsForStation(state.station);
-    if (list.length === 0){
-      flashStationSummary('Log the throw first, then add the can bonus.');
-      return;
-    }
-    const last = list[list.length - 1];
-    last.bonus = last.bonus ? 0 : CAN_BONUS;
-    saveState();
-    render();
-  }
-
-  function flashStationSummary(msg){
-    const el = document.getElementById('stationSummary');
-    el.textContent = msg;
-    el.classList.remove('complete');
-  }
-
-  function undo(){
-    const idx = [...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===state.round).map(o=>o.i).pop();
-    if (idx === undefined) return;
-    state.throws.splice(idx,1);
-    saveState();
-    render();
-  }
-
-  function changeStation(delta){
-    state.station = ((state.station - 1 + delta + 11) % 11) + 1;
-    render();
-  }
+  function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; last.bonus=last.bonus?0:CAN_BONUS; saveState(); render(); }
+  function flashStationSummary(msg){ const el=document.getElementById('stationSummary'); el.textContent=msg; }
+  function undo(){ const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===state.round).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
+  function changeStation(delta){ state.station=((state.station-1+delta+11)%11)+1; render(); }
 
   function updateThrowDots(){
-    const wrap = document.getElementById('throwDots');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    const ns='http://www.w3.org/2000/svg';
-    const count = throwsForStation(state.station).length;
-    const dotR = 5, gap = 15;
-    const totalW = gap*4;
-    const x0 = VB_W - 6 - totalW - dotR;
-    const y0 = 6 + dotR + 12;
-    const lbl = document.createElementNS(ns,'text');
-    lbl.setAttribute('x', VB_W-6); lbl.setAttribute('y', 12);
-    lbl.setAttribute('text-anchor','end');
-    lbl.setAttribute('font-family',"'Saira Condensed', sans-serif");
-    lbl.setAttribute('font-size','11'); lbl.setAttribute('font-weight','700');
-    lbl.setAttribute('letter-spacing','1'); lbl.setAttribute('fill', PAL.ink);
-    lbl.textContent = count>=5 ? 'COMPLETE' : `THROW ${count+1}/5`;
-    wrap.appendChild(lbl);
-    for (let i=0;i<5;i++){
-      const c=document.createElementNS(ns,'circle');
-      c.setAttribute('cx', x0 + i*gap); c.setAttribute('cy', y0);
-      c.setAttribute('r', dotR);
-      c.setAttribute('fill', i<count ? PAL.brass : 'none');
-      c.setAttribute('stroke', i<count ? PAL.brass : '#B0A184');
-      c.setAttribute('stroke-width','1.4');
-      wrap.appendChild(c);
-    }
+    const wrap=document.getElementById('completeCorner'); if(!wrap) return; wrap.innerHTML='';
+    const ns='http://www.w3.org/2000/svg'; const count=throwsForStation(state.station).length;
+    const tcx=VB_W-INSET-24, ty=INSET-6;
+    const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',tcx+18); lbl.setAttribute('y',ty); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-family',"'Saira Condensed',sans-serif"); lbl.setAttribute('font-size','8'); lbl.setAttribute('font-weight','700'); lbl.setAttribute('letter-spacing','1'); lbl.setAttribute('fill','#FFFFFF'); lbl.textContent= count>=5?'COMPLETE':`THROW ${count+1}/5`; wrap.appendChild(lbl);
+    for(let i=0;i<5;i++){ const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',tcx+i*11); c.setAttribute('cy',ty+13); c.setAttribute('r',3.6); c.setAttribute('fill', i<count?'#FFFFFF':'none'); c.setAttribute('stroke','#FFFFFF'); c.setAttribute('stroke-width','1.3'); wrap.appendChild(c); }
   }
 
   function updateStationSummary(){
-    const el = document.getElementById('stationSummary');
-    const list = throwsForStation(state.station);
-    if (list.length === 0){
-      el.textContent = '';
-      el.classList.remove('complete');
-      el.classList.remove('palindrome');
-      return;
-    }
-    const base = list.reduce((a,t)=>a+throwPoints(t),0);
-    if (list.length >= 5){
-      const pal = palindromeFor(list);
-      if (pal){
-        const total = base + pal.bonus;
-        const sign = pal.bonus >= 0 ? '+' : '−';
-        const mag = Math.abs(pal.bonus);
-        if (pal.penalty){
-          el.innerHTML = `All five missed — <strong>−${mag} penalty</strong>. Station ${state.station}: ${total} pts.`;
-        } else {
-          el.innerHTML = `Palindrome ${pal.label} — <strong>${sign}${mag} bonus</strong>. Station ${state.station}: ${total} pts.`;
-        }
-        el.classList.add('complete');
-        el.classList.add('palindrome');
-      } else {
-        el.innerHTML = `Station ${state.station} complete — <strong>${base} pts</strong>. Tap › for next station.`;
-        el.classList.add('complete');
-        el.classList.remove('palindrome');
-      }
-    } else {
-      el.innerHTML = `Station ${state.station} so far: <strong>${base} pts</strong> (${list.length}/5)`;
-      el.classList.remove('complete');
-      el.classList.remove('palindrome');
-    }
+    const el=document.getElementById('stationSummary'); const list=throwsForStation(state.station);
+    if(list.length===0){ el.textContent=''; return; }
+    const base=list.reduce((a,t)=>a+throwPoints(t),0);
+    if(list.length>=5){ const pal=palindromeFor(list);
+      if(pal){ const total=base+pal.bonus, mag=Math.abs(pal.bonus);
+        if(pal.penalty) el.innerHTML=`All five missed — <strong>−${mag} penalty</strong>. Station ${state.station}: ${total} pts.`;
+        else el.innerHTML=`Palindrome ${pal.label} — <strong>+${mag} bonus</strong>. Station ${state.station}: ${total} pts.`;
+      } else el.innerHTML=`Station ${state.station} complete — <strong>${base} pts</strong>. Tap › for next station.`;
+    } else el.innerHTML=`Station ${state.station} so far: <strong>${base} pts</strong> (${list.length}/5)`;
   }
 
   function updateLog(){
-    const wrap = document.getElementById('logWrap');
-    const roundThrows = state.throws.filter(t=>t.round===state.round);
-    if (roundThrows.length === 0){
-      wrap.innerHTML = '<div class="empty-log">No throws logged yet for this round.</div>';
-      document.getElementById('grandTotal').textContent = '0';
-      return;
-    }
-    const byStation = {};
-    roundThrows.forEach(t=>{
-      byStation[t.station] = byStation[t.station] || [];
-      byStation[t.station].push(t);
+    const wrap=document.getElementById('logWrap'); const roundThrows=state.throws.filter(t=>t.round===state.round);
+    if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='0'; return; }
+    const byStation={}; roundThrows.forEach(t=>{ byStation[t.station]=byStation[t.station]||[]; byStation[t.station].push(t); });
+    let rows='',grand=0;
+    Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{ const list=byStation[st].sort((a,b)=>a.throw-b.throw); let subtotal=list.reduce((a,t)=>a+throwPoints(t),0);
+      let pills=list.map(t=>{ const base=`<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`; return t.bonus?base+`<span class="score-pill bonus-pill">+${t.bonus}</span>`:base; }).join('');
+      const pal=palindromeFor(list); if(pal){ subtotal+=pal.bonus; const sign=pal.bonus>=0?'+':'−',mag=Math.abs(pal.bonus),cls=pal.penalty?'score-pill pal-pill pal-penalty':'score-pill pal-pill'; pills+=`<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`; }
+      grand+=subtotal; rows+=`<tr><td>${st}</td><td>${pills}</td><td style="text-align:right;font-weight:700;">${subtotal}</td></tr>`;
     });
-    let rows = '';
-    let grand = 0;
-    Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{
-      const list = byStation[st].sort((a,b)=>a.throw-b.throw);
-      let subtotal = list.reduce((a,t)=>a+throwPoints(t),0);
-      let pills = list.map(t=>{
-        const base = `<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`;
-        return t.bonus ? base + `<span class="score-pill bonus-pill">+${t.bonus}</span>` : base;
-      }).join('');
-      // palindrome station bonus (only fires on a complete 5-throw match)
-      const pal = palindromeFor(list);
-      if (pal){
-        subtotal += pal.bonus;
-        const sign = pal.bonus >= 0 ? '+' : '−';
-        const mag = Math.abs(pal.bonus);
-        const cls = pal.penalty ? 'score-pill pal-pill pal-penalty' : 'score-pill pal-pill';
-        pills += `<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`;
-      }
-      grand += subtotal;
-      rows += `<tr><td>${st}</td><td>${pills}</td><td style="text-align:right; font-weight:700;">${subtotal}</td></tr>`;
-    });
-    wrap.innerHTML = `<table>
-      <thead><tr><th>Station</th><th>Throws</th><th style="text-align:right;">Pts</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-    document.getElementById('grandTotal').textContent = grand;
+    wrap.innerHTML=`<table><thead><tr><th>Station</th><th>Throws</th><th style="text-align:right;">Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById('grandTotal').textContent=grand;
   }
 
   function render(){
-    document.getElementById('stationNum').textContent = state.station;
-    const at = document.getElementById('alignToggle');
-    if (at) at.checked = !!state.align;
-    const an = document.getElementById('alignNote');
-    if (an){
-      const stn = STATIONS[state.station];
-      an.textContent = stn ? `${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0` : '';
-    }
-    applyRotation();
-    drawMarkers();
-    updateTally();
-    updateThrowDots();
-    updateStationSummary();
-    updateLog();
+    document.getElementById('stationNum').textContent=state.station;
+    const at=document.getElementById('alignToggle'); if(at) at.checked=!!state.align;
+    const an=document.getElementById('alignNote'); if(an){ const stn=STATIONS[state.station]; an.textContent=stn?`${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0`:''; }
+    applyRotation(); drawMarkers(); updateTally(); updateThrowDots(); updateStationSummary(); updateLog();
   }
 
-  // palindrome result keyed by "round|station", for the completing (5th) throw only
-  function palindromeMap(){
-    const groups = {};
-    state.throws.forEach(t=>{
-      const k = t.round+'|'+t.station;
-      (groups[k]=groups[k]||[]).push(t);
-    });
-    const out = {};
-    Object.keys(groups).forEach(k=>{
-      const pal = palindromeFor(groups[k]);
-      if (pal) out[k] = pal;
-    });
-    return out;
-  }
+  function palindromeMap(){ const groups={}; state.throws.forEach(t=>{ const k=t.round+'|'+t.station; (groups[k]=groups[k]||[]).push(t); }); const out={}; Object.keys(groups).forEach(k=>{ const p=palindromeFor(groups[k]); if(p) out[k]=p; }); return out; }
 
   function toCSV(){
-    const header = 'date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right,station_palindrome,station_palindrome_bonus\n';
-    const palMap = palindromeMap();
-    const rows = state.throws.map(t => {
-      const bonus = t.bonus || 0;
-      const band = t.band || '';
-      const quad = t.quad || '';
-      const m = (state.meta && state.meta[t.round]) || {date:'', time:''};
-      const stamp = `${m.date || ''},${m.time || ''},${roundDurationMin(t.round)}`;
-      const stn = STATIONS[t.station] || {dist:'', bearing:''};
-      const core = `${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
-      // palindrome columns populated only on the 5th (completing) throw of a matching station
-      const pal = (t.throw === 5) ? palMap[t.round+'|'+t.station] : null;
-      const palName = pal ? pal.label.replace(/·/g,'-') : '';
-      const palBonus = pal ? pal.bonus : '';
-      let spatial;
-      if (t.x === null || t.y === null){
-        spatial = ',,,';
-      } else {
-        const dx = Math.round((t.x - CX)*10)/10;
-        const dyUp = Math.round((CY - t.y)*10)/10;
-        let lng = '', rgt = '';
-        if (stn.bearing !== ''){
-          const N = -dyUp, E = -dx;
-          const th = stn.bearing * Math.PI/180;
-          lng = Math.round((N*Math.cos(th) + E*Math.sin(th))*10)/10;
-          rgt = Math.round((-N*Math.sin(th) + E*Math.cos(th))*10)/10;
-        }
-        spatial = `,${dx},${dyUp},${lng},${rgt}`;
-      }
+    const header='date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right,station_palindrome,station_palindrome_bonus\n';
+    const palMap=palindromeMap();
+    const rows=state.throws.map(t=>{ const bonus=t.bonus||0,band=t.band||'',quad=t.quad||''; const m=(state.meta&&state.meta[t.round])||{date:'',time:''}; const stamp=`${m.date||''},${m.time||''},${roundDurationMin(t.round)}`; const stn=STATIONS[t.station]||{dist:'',bearing:''};
+      const core=`${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
+      const pal=(t.throw===5)?palMap[t.round+'|'+t.station]:null; const palName=pal?pal.label.replace(/·/g,'-'):''; const palBonus=pal?pal.bonus:'';
+      let spatial; if(t.x===null||t.y===null){ spatial=',,,'; } else { const dx=Math.round((t.x-CX)*10)/10,dyUp=Math.round((CY-t.y)*10)/10; let lng='',rgt=''; if(stn.bearing!==''){ const N=-dyUp,E=-dx,th=stn.bearing*Math.PI/180; lng=Math.round((N*Math.cos(th)+E*Math.sin(th))*10)/10; rgt=Math.round((-N*Math.sin(th)+E*Math.cos(th))*10)/10; } spatial=`,${dx},${dyUp},${lng},${rgt}`; }
       return `${core}${spatial},${palName},${palBonus}`;
     }).join('\n');
-    return header + rows;
+    return header+rows;
   }
+  function downloadBlob(content,filename,mime){ const blob=new Blob([content],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),2000); }
 
-  function downloadBlob(content, filename, mime){
-    const blob = new Blob([content], {type: mime});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url), 2000);
-  }
-
-  function exportImage(){
-    const svg = document.getElementById('target');
-    const clone = svg.cloneNode(true);
-    const oldG = clone.querySelector('#markerGroup');
-    if (oldG) oldG.remove();
-    const ns = 'http://www.w3.org/2000/svg';
-    const g = document.createElementNS(ns,'g');
-    state.throws.filter(t=>t.round===state.round && t.x!==null).forEach(t=>{
-      const c = document.createElementNS(ns,'circle');
-      c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5.5);
-      c.setAttribute('fill', markerFill(t));
-      c.setAttribute('stroke', PAL.ink); c.setAttribute('stroke-width','1.4');
-      c.setAttribute('opacity','0.85');
-      g.appendChild(c);
-      const lbl = document.createElementNS(ns,'text');
-      lbl.setAttribute('x', t.x); lbl.setAttribute('y', t.y+2.4);
-      lbl.setAttribute('text-anchor','middle');
-      lbl.setAttribute('font-family',"'Saira Condensed', sans-serif"); lbl.setAttribute('font-size','5.5');
-      lbl.setAttribute('fill', PAL.paper);
-      lbl.setAttribute('font-weight','700');
-      lbl.textContent = t.station + '.' + t.throw;
-      g.appendChild(lbl);
-    });
-    const cScene = clone.querySelector('#scene');
-    (cScene || clone).appendChild(g);
-
-    const basketCount = state.throws.filter(t=>t.round===state.round && t.score===10).length;
-    const bc = document.createElementNS(ns,'text');
-    bc.setAttribute('x', VB_W/2); bc.setAttribute('y', VB_H - 10);
-    bc.setAttribute('text-anchor','middle');
-    bc.setAttribute('font-family',"'Saira Condensed', sans-serif"); bc.setAttribute('font-size','10');
-    bc.setAttribute('fill', PAL.dust);
-    bc.textContent = basketCount + ' basket makes this round (not shown spatially)';
-    clone.appendChild(bc);
-
-    const svgString = new XMLSerializer().serializeToString(clone);
-    const svg64 = btoa(unescape(encodeURIComponent(svgString)));
-    const image64 = 'data:image/svg+xml;base64,' + svg64;
-
-    const img = new Image();
-    img.onload = function(){
-      const canvas = document.createElement('canvas');
-      canvas.width = 1000; canvas.height = Math.round(1000 * VB_H/VB_W);
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = PAL.paper;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      canvas.toBlob(function(blob){
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `landing-round-${state.round || 'session'}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(()=>URL.revokeObjectURL(url), 2000);
-      }, 'image/png');
-    };
-    img.src = image64;
-  }
-
-  document.getElementById('prevStation').addEventListener('click', ()=>changeStation(-1));
-  document.getElementById('nextStation').addEventListener('click', ()=>changeStation(1));
-  document.getElementById('showAllToggle').addEventListener('change', render);
-  document.getElementById('alignToggle').addEventListener('change', (e)=>{
-    state.align = e.target.checked;
-    saveState();
-    render();
-  });
-  document.getElementById('roundInput').addEventListener('input', (e)=>{
-    const v = e.target.value;
-    state.round = v === '' ? null : Number(v);
-    saveState();
-    render();
-  });
-  document.getElementById('exportCsv').addEventListener('click', ()=>{
-    downloadBlob(toCSV(), `landing-round-${state.round || 'session'}.csv`, 'text/csv');
-  });
-  document.getElementById('exportImg').addEventListener('click', exportImage);
-  document.getElementById('resetSession').addEventListener('click', ()=>{
-    if (!confirm('Clear all logged throws for this session? This cannot be undone.')) return;
-    state.throws = [];
-    state.meta = {};
-    saveState();
-    render();
-  });
+  document.getElementById('prevStation').addEventListener('click',()=>changeStation(-1));
+  document.getElementById('nextStation').addEventListener('click',()=>changeStation(1));
+  document.getElementById('showAllToggle').addEventListener('change',render);
+  document.getElementById('alignToggle').addEventListener('change',(e)=>{ state.align=e.target.checked; saveState(); render(); });
+  document.getElementById('roundInput').addEventListener('input',(e)=>{ const v=e.target.value; state.round=v===''?null:Number(v); saveState(); render(); });
+  document.getElementById('exportCsv').addEventListener('click',()=>{ downloadBlob(toCSV(),`landing-round-${state.round||'session'}.csv`,'text/csv'); });
+  document.getElementById('resetSession').addEventListener('click',()=>{ if(!confirm('Clear all logged throws for this session? This cannot be undone.')) return; state.throws=[]; state.meta={}; saveState(); render(); });
 
   buildTarget();
   loadState();
 })();
 </script>
-
 </body>
 </html>
