@@ -135,8 +135,12 @@
     1:{bearing:246,dist:53},2:{bearing:184,dist:47},3:{bearing:207,dist:59},
     4:{bearing:210,dist:84},5:{bearing:168,dist:77},6:{bearing:123,dist:68},
     7:{bearing:56,dist:52},8:{bearing:359,dist:71},9:{bearing:313,dist:104},
-    10:{bearing:302,dist:90},11:{bearing:281,dist:71}
+    10:{bearing:302,dist:90},11:{bearing:281,dist:71},
+    12:{bearing:216,dist:153}   // Bonus Station (BN) — from aerial: 153 ft, bearing 216°
   };
+  const BONUS=12;
+  function stationCap(st){ return st===BONUS?1:5; }
+  function isBonus(){ return state.station===BONUS; }
 
   const PAL={ tent:'#6E1417',paper:'#F2E4C4',paperDeep:'#E5D2AA',ink:'#1C1410',brass:'#C9922B',brassDark:'#8A6212',teal:'#1E5C5A',prize:'#5B2A86',dust:'#7A6A55' };
   const CELLS={
@@ -146,6 +150,17 @@
   };
   const C3_CENTER='#241A4A', RINGER_COL='#5B2A86';
   const CORNER={ undo:'#C0201C', complete:'#E08A2B', ringer:'#5B2A86', can:'#8E8578' };
+  // Bonus Station skin: OB verticals white/black-dots, OB horizontals black/white-dots,
+  // scoring rings keep colour with dense white dots. Applied via a toggled overlay layer.
+  const MISS_BONUS_FILL={ long:'#FFFFFF', short:'#FFFFFF', left:'#111111', right:'#111111' };
+  function setBonusSkin(bonus){
+    QUADS.forEach(q=>{ const c=cellEls[cellKey('miss',q)]; if(!c) return; const col=bonus?MISS_BONUS_FILL[q]:CELLS.miss[q]; c.baseColor=col; c.el.setAttribute('fill',col); });
+    const dl=document.getElementById('dotLayer'); if(dl) dl.style.display=bonus?'':'none';
+  }
+
+  // points from the ring only (Bonus Station doubles rings; OOB banks a flat 1)
+  function ringPoints(t){ if(t.station===BONUS){ return t.score===0 ? 1 : t.score*2; } return t.score; }
+  function effectivePoints(t){ return ringPoints(t) + (t.bonus||0); }
 
   function colorForScore(s){ return {10:RINGER_COL,3:C3_CENTER,2:CELLS.r2.left,1:CELLS.r1.left,0:'#8E7E66'}[s]; }
   function markerFill(){ return '#FFFFFF'; }
@@ -216,6 +231,13 @@
     const ns='http://www.w3.org/2000/svg';
     const mk=t=>document.createElementNS(ns,t);
 
+    // dot patterns for the Bonus Station skin
+    const defs=mk('defs');
+    const pat=(id,tile,r,fill)=>{ const p=mk('pattern'); p.setAttribute('id',id); p.setAttribute('width',tile); p.setAttribute('height',tile); p.setAttribute('patternUnits','userSpaceOnUse'); [[tile*0.25,tile*0.25],[tile*0.75,tile*0.75]].forEach(([cx,cy])=>{ const c=mk('circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r); c.setAttribute('fill',fill); p.appendChild(c); }); defs.appendChild(p); };
+    pat('ringW',7,1.15,'#FFFFFF');   // dense small white dots for scoring rings
+    pat('obW',13,2.2,'#FFFFFF');      // big white dots for black OB quads
+    pat('obB',13,2.2,'#111111');      // big black dots for white OB quads
+    svg.appendChild(defs);
     const bg=mk('rect'); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H); bg.setAttribute('fill',PAL.paper); svg.appendChild(bg);
 
     // corner fills (behind rings; masked to corner triangles)
@@ -237,6 +259,14 @@
     QUADS.forEach(q=>addWedge(R2,R1,q,CELLS.r1[q],'r1'));
     QUADS.forEach(q=>addWedge(R3,R2,q,CELLS.r2[q],'r2'));
     const c3=mk('circle'); c3.setAttribute('cx',CX); c3.setAttribute('cy',CY); c3.setAttribute('r',R3); c3.setAttribute('fill',C3_CENTER); scene.appendChild(c3); cellEls[cellKey('c3',null)]={el:c3,baseColor:C3_CENTER};
+
+    // ---- dot overlay layer (shown only on the Bonus Station), rotates with the scene ----
+    const dotLayer=mk('g'); dotLayer.setAttribute('id','dotLayer'); dotLayer.setAttribute('pointer-events','none'); dotLayer.style.display='none';
+    const missDot={long:'obB',short:'obB',left:'obW',right:'obW'};
+    QUADS.forEach(q=>{ const[a0,a1]=QRANGE[q]; const p=mk('path'); p.setAttribute('d',wedge(R1,R_MISS,a0,a1)); p.setAttribute('fill',`url(#${missDot[q]})`); dotLayer.appendChild(p); });
+    QUADS.forEach(q=>{ const[a0,a1]=QRANGE[q]; [[R2,R1],[R3,R2]].forEach(([ri,ro])=>{ const p=mk('path'); p.setAttribute('d',wedge(ri,ro,a0,a1)); p.setAttribute('fill','url(#ringW)'); dotLayer.appendChild(p); }); });
+    const cd=mk('circle'); cd.setAttribute('cx',CX); cd.setAttribute('cy',CY); cd.setAttribute('r',R3); cd.setAttribute('fill','url(#ringW)'); dotLayer.appendChild(cd);
+    scene.appendChild(dotLayer);
 
     [R3,R2,R1,R_MISS].forEach(r=>{ const c=mk('circle'); c.setAttribute('cx',CX); c.setAttribute('cy',CY); c.setAttribute('r',r); c.setAttribute('fill','none'); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width', r<=R1?'1.6':'2'); scene.appendChild(c); });
     const pole=mk('circle'); pole.setAttribute('cx',CX); pole.setAttribute('cy',CY); pole.setAttribute('r',1.6); pole.setAttribute('fill','#FFFFFF'); pole.setAttribute('opacity','0.85'); scene.appendChild(pole);
@@ -312,7 +342,7 @@
     svg.addEventListener('mouseleave',onCancel);
   }
 
-  function sceneRotation(){ if(!state.align) return 0; const st=STATIONS[state.station]; if(!st) return 0; return 180-st.bearing; }
+  function sceneRotation(){ if(!state.align) return 0; const st=STATIONS[state.station]; if(!st||st.bearing==null) return 0; return 180-st.bearing; }
   function applyRotation(){ const phi=sceneRotation(); const scene=document.getElementById('scene'); if(scene) scene.setAttribute('transform',`rotate(${phi} ${CX} ${CY})`); }
   function unrotate(x,y){ const phi=sceneRotation(); if(!phi) return {x,y}; const a=-phi*Math.PI/180,dx=x-CX,dy=y-CY; return {x:CX+dx*Math.cos(a)-dy*Math.sin(a), y:CY+dx*Math.sin(a)+dy*Math.cos(a)}; }
 
@@ -334,26 +364,37 @@
     });
   }
 
-  function currentStationFull(){ return throwsForStation(state.station).length>=5; }
-  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const throwNum=throwsForStation(state.station).length+1; stampNow(state.round); state.throws.push({round:state.round,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if(state.station===11&&throwNum===5) stampEnd(state.round); saveState(); render(); }
-  function throwPoints(t){ return t.score+(t.bonus||0); }
+  function currentStationFull(){ return throwsForStation(state.station).length>=stationCap(state.station); }
+  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const throwNum=throwsForStation(state.station).length+1; stampNow(state.round); state.throws.push({round:state.round,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if((state.station===11&&throwNum===5)||(state.station===BONUS&&throwNum===1)) stampEnd(state.round); saveState(); render(); }
+  function throwPoints(t){ return effectivePoints(t); }
   function tapRinger(){ if(currentStationFull()) return; if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; } logThrow(10,null,null,null,null); }
   function undoLast(){ undo(); }
-  function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; last.bonus=last.bonus?0:CAN_BONUS; saveState(); render(); }
+  function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; const amt=isBonus()?CAN_BONUS*2:CAN_BONUS; last.bonus=last.bonus?0:amt; saveState(); render(); }
   function flashStationSummary(msg){ const el=document.getElementById('stationSummary'); el.textContent=msg; }
   function undo(){ const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===state.round).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
-  function changeStation(delta){ state.station=((state.station-1+delta+11)%11)+1; render(); }
+  function changeStation(delta){ state.station=((state.station-1+delta+12)%12)+1; render(); }
 
   function updateThrowDots(){
     const wrap=document.getElementById('completeCorner'); if(!wrap) return; wrap.innerHTML='';
     const ns='http://www.w3.org/2000/svg'; const count=throwsForStation(state.station).length;
     const tcx=VB_W-INSET-24, ty=INSET-6;
-    const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',tcx+18); lbl.setAttribute('y',ty); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-family',"'Saira Condensed',sans-serif"); lbl.setAttribute('font-size','8'); lbl.setAttribute('font-weight','700'); lbl.setAttribute('letter-spacing','1'); lbl.setAttribute('fill','#FFFFFF'); lbl.textContent= count>=5?'COMPLETE':`THROW ${count+1}/5`; wrap.appendChild(lbl);
+    const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',tcx+18); lbl.setAttribute('y',ty); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-family',"'Saira Condensed',sans-serif"); lbl.setAttribute('font-size','8'); lbl.setAttribute('font-weight','700'); lbl.setAttribute('letter-spacing','1'); lbl.setAttribute('fill','#FFFFFF');
+    if(isBonus()){
+      lbl.textContent = count>=1?'COMPLETE':'BONUS SHOT'; wrap.appendChild(lbl);
+      const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',tcx+18); c.setAttribute('cy',ty+13); c.setAttribute('r',4.6); c.setAttribute('fill', count>=1?'#FFFFFF':'none'); c.setAttribute('stroke','#FFFFFF'); c.setAttribute('stroke-width','1.5'); wrap.appendChild(c);
+      return;
+    }
+    lbl.textContent= count>=5?'COMPLETE':`THROW ${count+1}/5`; wrap.appendChild(lbl);
     for(let i=0;i<5;i++){ const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',tcx+i*11); c.setAttribute('cy',ty+13); c.setAttribute('r',3.6); c.setAttribute('fill', i<count?'#FFFFFF':'none'); c.setAttribute('stroke','#FFFFFF'); c.setAttribute('stroke-width','1.3'); wrap.appendChild(c); }
   }
 
   function updateStationSummary(){
     const el=document.getElementById('stationSummary'); const list=throwsForStation(state.station);
+    if(isBonus()){
+      if(list.length===0){ el.innerHTML='<strong>Bonus Station</strong> — one throw · scores doubled · OB = 1 pt.'; return; }
+      const t=list[0]; el.innerHTML=`Bonus Station — <strong>${effectivePoints(t)} pts</strong>${t.bonus?' (incl. +'+t.bonus+' can)':''}.`;
+      return;
+    }
     if(list.length===0){ el.textContent=''; return; }
     const base=list.reduce((a,t)=>a+throwPoints(t),0);
     if(list.length>=5){ const pal=palindromeFor(list);
@@ -369,19 +410,23 @@
     if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='0'; return; }
     const byStation={}; roundThrows.forEach(t=>{ byStation[t.station]=byStation[t.station]||[]; byStation[t.station].push(t); });
     let rows='',grand=0;
-    Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{ const list=byStation[st].sort((a,b)=>a.throw-b.throw); let subtotal=list.reduce((a,t)=>a+throwPoints(t),0);
-      let pills=list.map(t=>{ const base=`<span class="score-pill" style="background:${colorForScore(t.score)}">${t.score}</span>`; return t.bonus?base+`<span class="score-pill bonus-pill">+${t.bonus}</span>`:base; }).join('');
-      const pal=palindromeFor(list); if(pal){ subtotal+=pal.bonus; const sign=pal.bonus>=0?'+':'−',mag=Math.abs(pal.bonus),cls=pal.penalty?'score-pill pal-pill pal-penalty':'score-pill pal-pill'; pills+=`<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`; }
-      grand+=subtotal; rows+=`<tr><td>${st}</td><td>${pills}</td><td style="text-align:right;font-weight:700;">${subtotal}</td></tr>`;
+    Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{ const list=byStation[st].sort((a,b)=>a.throw-b.throw); const bonusStation=Number(st)===BONUS; let subtotal=list.reduce((a,t)=>a+throwPoints(t),0);
+      let pills=list.map(t=>{ const base=`<span class="score-pill" style="background:${colorForScore(t.score)}">${ringPoints(t)}</span>`; return t.bonus?base+`<span class="score-pill bonus-pill">+${t.bonus}</span>`:base; }).join('');
+      if(!bonusStation){ const pal=palindromeFor(list); if(pal){ subtotal+=pal.bonus; const sign=pal.bonus>=0?'+':'−',mag=Math.abs(pal.bonus),cls=pal.penalty?'score-pill pal-pill pal-penalty':'score-pill pal-pill'; pills+=`<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`; } }
+      grand+=subtotal; const label=bonusStation?'<span style="color:var(--brass);font-weight:900;">Bonus</span>':st; rows+=`<tr><td>${label}</td><td>${pills}</td><td style="text-align:right;font-weight:700;">${subtotal}</td></tr>`;
     });
     wrap.innerHTML=`<table><thead><tr><th>Station</th><th>Throws</th><th style="text-align:right;">Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
     document.getElementById('grandTotal').textContent=grand;
   }
 
   function render(){
-    document.getElementById('stationNum').textContent=state.station;
+    const numEl=document.getElementById('stationNum');
+    if(isBonus()){ numEl.textContent='Bonus'; numEl.style.fontSize='1.15rem'; } else { numEl.textContent=state.station; numEl.style.fontSize=''; }
     const at=document.getElementById('alignToggle'); if(at) at.checked=!!state.align;
-    const an=document.getElementById('alignNote'); if(an){ const stn=STATIONS[state.station]; an.textContent=stn?`${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0`:''; }
+    const an=document.getElementById('alignNote');
+    if(an){ if(isBonus()){ const stn=STATIONS[BONUS]; an.textContent = (stn.dist!=null?`${stn.dist} ft \u00b7 `:'') + '\u00d72 \u00b7 OB = 1'; } else { const stn=STATIONS[state.station]; an.textContent=stn&&stn.dist!=null?`${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0`:''; } }
+    const canPlus=document.getElementById('canPlus'); if(canPlus) canPlus.textContent=isBonus()?'+10':'+5';
+    setBonusSkin(isBonus());
     applyRotation(); drawMarkers(); updateTally(); updateThrowDots(); updateStationSummary(); updateLog();
   }
 
@@ -390,14 +435,15 @@
   function toCSV(){
     const header='date,time,round_duration_min,round,station,station_dist_ft,station_bearing_deg,throw,score,cell_band,cell_quadrant,can_bonus,total_points,horizontal_in_right_positive,vertical_in_top_positive,inches_long,inches_right,station_palindrome,station_palindrome_bonus\n';
     const palMap=palindromeMap();
-    const rows=state.throws.map(t=>{ const bonus=t.bonus||0,band=t.band||'',quad=t.quad||''; const m=(state.meta&&state.meta[t.round])||{date:'',time:''}; const stamp=`${m.date||''},${m.time||''},${roundDurationMin(t.round)}`; const stn=STATIONS[t.station]||{dist:'',bearing:''};
-      const core=`${stamp},${t.round},${t.station},${stn.dist},${stn.bearing},${t.throw},${t.score},${band},${quad},${bonus},${t.score+bonus}`;
+    const rows=state.throws.map(t=>{ const bonus=t.bonus||0,band=t.band||'',quad=t.quad||''; const m=(state.meta&&state.meta[t.round])||{date:'',time:''}; const stamp=`${m.date||''},${m.time||''},${roundDurationMin(t.round)}`; const stn=STATIONS[t.station]||{dist:null,bearing:null};
+      const distCol=stn.dist==null?'':stn.dist, bearingCol=stn.bearing==null?'':stn.bearing;
+      const core=`${stamp},${t.round},${t.station},${distCol},${bearingCol},${t.throw},${t.score},${band},${quad},${bonus},${effectivePoints(t)}`;
       const pal=(t.throw===5)?palMap[t.round+'|'+t.station]:null; const palName=pal?pal.label.replace(/·/g,'-'):''; const palBonus=pal?pal.bonus:'';
       // position in REAL INCHES from the measurement geometry (band+quad), not the display coords.
       // ringers (band null) have no position.
       let spatial;
       if(t.band===null){ spatial=',,,'; }
-      else { const m2=measCenter(t.band,t.quad); const dx=Math.round(m2.dx*10)/10,dyUp=Math.round(m2.dyUp*10)/10; let lng='',rgt=''; if(stn.bearing!==''){ const N=-dyUp,E=-dx,th=stn.bearing*Math.PI/180; lng=Math.round((N*Math.cos(th)+E*Math.sin(th))*10)/10; rgt=Math.round((-N*Math.sin(th)+E*Math.cos(th))*10)/10; } spatial=`,${dx},${dyUp},${lng},${rgt}`; }
+      else { const m2=measCenter(t.band,t.quad); const dx=Math.round(m2.dx*10)/10,dyUp=Math.round(m2.dyUp*10)/10; let lng='',rgt=''; if(typeof stn.bearing==='number'){ const N=-dyUp,E=-dx,th=stn.bearing*Math.PI/180; lng=Math.round((N*Math.cos(th)+E*Math.sin(th))*10)/10; rgt=Math.round((-N*Math.sin(th)+E*Math.cos(th))*10)/10; } spatial=`,${dx},${dyUp},${lng},${rgt}`; }
       return `${core}${spatial},${palName},${palBonus}`;
     }).join('\n');
     return header+rows;
