@@ -52,6 +52,21 @@
   .total-row{ display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; padding-top:11px; border-top:3px double var(--ink); font-size:0.72rem; font-weight:700; letter-spacing:0.24em; text-transform:uppercase; color:var(--dust); }
   .total-row span:last-child{ font-family:'Rye',serif; font-size:1.7rem; letter-spacing:0; color:var(--tent); }
   .empty-log{ color:var(--dust); font-size:0.82rem; text-align:center; padding:10px 0; }
+  .legend{ display:flex; gap:18px; justify-content:center; margin-top:12px; font-size:0.68rem; color:var(--dust); font-weight:700; letter-spacing:0.04em; }
+  .rules-btn{ display:block; width:100%; margin-top:10px; background:var(--brass); color:var(--ink); border:2.5px solid var(--ink); border-radius:2px; padding:12px 8px; font-family:'Saira Condensed',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,0.45); }
+  .rules-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.45); }
+  .rules-overlay{ position:fixed; inset:0; background:var(--paper); z-index:50; overflow-y:auto; display:none; }
+  .rules-overlay.open{ display:block; }
+  .rules-inner{ max-width:560px; margin:0 auto; padding:0 16px 40px; }
+  .rules-top{ display:flex; align-items:center; gap:12px; padding:16px 0 10px; }
+  .rules-back{ width:38px; height:38px; border-radius:50%; border:2.5px solid var(--ink); background:var(--brass); font-size:20px; font-weight:900; line-height:33px; text-align:center; color:var(--ink); cursor:pointer; }
+  .rules-overlay h1{ font-family:'Rye',serif; font-size:1.9rem; color:var(--tent); }
+  .rules-overlay h2{ font-size:0.74rem; font-weight:900; letter-spacing:0.22em; text-transform:uppercase; color:var(--tent); border-bottom:2px solid var(--ink); padding-bottom:6px; margin:20px 0 10px; }
+  .rules-overlay p{ font-size:0.88rem; line-height:1.5; margin-bottom:8px; }
+  .rules-overlay table{ width:100%; border-collapse:collapse; font-size:0.88rem; margin:4px 0; }
+  .rules-overlay td{ padding:6px 4px; border-bottom:1px dashed rgba(28,20,16,0.22); }
+  .rules-overlay .note{ font-size:0.8rem; color:var(--dust); font-style:italic; }
+  .rules-overlay .shape{ font-family:'Rye',serif; letter-spacing:2px; }
   .export-row{ display:flex; gap:8px; flex-wrap:wrap; }
   .export-row button{ flex:1; min-width:104px; background:var(--ink); color:var(--paper); border:2.5px solid var(--ink); border-radius:2px; padding:12px 8px; font-family:'Saira Condensed',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,0.45); }
   .export-row button.danger{ background:var(--paper); color:var(--tent); border-color:var(--tent); }
@@ -95,16 +110,47 @@
 <div class="card tally">
   <div class="card-label">Tally Sheet</div>
   <div id="logWrap"></div>
-  <div class="total-row"><span>Round total</span><span id="grandTotal">0</span></div>
+  <div class="total-row"><span>Round vs Par</span><span id="grandTotal">E</span></div>
 </div>
 
 <div class="export-row">
   <button id="exportCsv">Export CSV</button>
   <button id="resetSession" class="danger">Clear session</button>
 </div>
+<button id="rulesBtn" class="rules-btn">Rules &amp; Scoring</button>
 
 <p class="target-hint">Press and hold the ring where the disc landed &mdash; release inside to log, drag off to cancel. With the map aligned you throw up the screen: top is long, bottom is short. Corners are buttons &mdash; undo (top-left), ringer (bottom-left), +5 can (bottom-right); top-right shows throw progress.</p>
 <p class="storage-note" id="storageNote">Auto-save is off in this view. Export before you close the tab.</p>
+</div>
+
+<div class="rules-overlay" id="rulesOverlay">
+  <div class="rules-inner">
+    <div class="rules-top"><span class="rules-back" id="rulesBack">&lsaquo;</span><h1>Rules</h1></div>
+    <h2>The Course</h2>
+    <p>11 stations, plus a Bonus Station to finish. Five discs at each station (one per throw), then a single Bonus throw.</p>
+    <h2>Scoring a Throw</h2>
+    <table>
+      <tr><td>Miss (outside the rings)</td><td style="text-align:right;font-weight:900">0</td></tr>
+      <tr><td>Outer ring</td><td style="text-align:right;font-weight:900">1</td></tr>
+      <tr><td>Middle ring</td><td style="text-align:right;font-weight:900">2</td></tr>
+      <tr><td>Inner ring</td><td style="text-align:right;font-weight:900">3</td></tr>
+      <tr><td>Ringer / cashed</td><td style="text-align:right;font-weight:900">10</td></tr>
+    </table>
+    <p class="note">A ringer (or &ldquo;cashed&rdquo;) is the disc going in. Knock the can off the top for a <strong>+5 can bonus</strong> on that throw.</p>
+    <h2>Palindrome Bonuses</h2>
+    <p>If a station&rsquo;s 5 throws read the same forward and backward and match a shape below, you earn a station bonus. Only these exact shapes count.</p>
+    <table>
+      <tr><td class="shape">0&middot;0&middot;0&middot;0&middot;0</td><td style="text-align:right;font-weight:900;color:var(--tent)">&minus;2</td></tr>
+      <tr><td class="shape">1&middot;1&middot;1&middot;1&middot;1</td><td style="text-align:right;font-weight:900;color:var(--tent)">+1</td></tr>
+      <tr><td class="shape">2&middot;2&middot;2&middot;2&middot;2</td><td style="text-align:right;font-weight:900;color:var(--tent)">+2</td></tr>
+      <tr><td class="shape">3&middot;3&middot;3&middot;3&middot;3</td><td style="text-align:right;font-weight:900;color:var(--tent)">+3</td></tr>
+    </table>
+    <p class="note">All five misses (0&middot;0&middot;0&middot;0&middot;0) is the one that costs you.</p>
+    <h2>The Bonus Station</h2>
+    <p>One throw, far out (&asymp;153 ft). Scores are <strong>doubled</strong> &mdash; ringer 20, inner 6, middle 4, outer 2 &mdash; and a miss out here still banks <strong>1 point</strong>. Can bonus doubles to +10. Folds into your round total on its own line.</p>
+    <h2>Scoring vs. Par</h2>
+    <p>Each station has a par set from last season&rsquo;s averages. Your score shows as <strong>+/&minus; vs. par</strong>, where <strong>+ is good</strong> &mdash; above par means you beat the average. A <span style="white-space:nowrap">&#127942; trophy</span> marks an all-time best at a station; a <span style="white-space:nowrap">&#9733; star</span> marks a season best. The Bonus Station scores raw points, with no par.</p>
+  </div>
 </div>
 
 <script>
@@ -120,16 +166,33 @@
 
   const PALINDROMES={
     '0,0,0,0,0':{bonus:-2,label:'0·0·0·0·0',penalty:true},
-    '1,1,1,1,1':{bonus:4,label:'1·1·1·1·1'},
-    '1,2,3,2,1':{bonus:4,label:'1·2·3·2·1'},
-    '2,2,2,2,2':{bonus:7,label:'2·2·2·2·2'},
-    '3,3,3,3,3':{bonus:12,label:'3·3·3·3·3'}
+    '1,1,1,1,1':{bonus:1,label:'1·1·1·1·1'},
+    '2,2,2,2,2':{bonus:2,label:'2·2·2·2·2'},
+    '3,3,3,3,3':{bonus:3,label:'3·3·3·3·3'}
   };
   function palindromeFor(list){
     if(!list||list.length!==5) return null;
     const key=list.slice().sort((a,b)=>a.throw-b.throw).map(t=>t.score).join(',');
     return PALINDROMES[key]||null;
   }
+
+  // ---- frozen 2026 par (per-station, stations 1-11; Bonus Station has no par) ----
+  const PAR={1:14,2:12,3:9,4:7,5:7,6:13,7:12,8:11,9:4,10:7,11:12};
+  const ROUND_PAR=Object.values(PAR).reduce((a,b)=>a+b,0); // 108
+  const CUR_SEASON=2026;
+  // seeded per-station bests from logged 2026 rounds (season == all-time for now)
+  const RECORD_SEED={1:24,2:27,3:18,4:17,5:14,6:20,7:18,8:19,9:16,10:10,11:27};
+  function seasonOf(round){ const m=state.meta&&state.meta[round]; if(m&&m.date){ const y=parseInt(m.date.slice(0,4),10); if(!isNaN(y)) return y; } return CUR_SEASON; }
+  // best subtotal per station across stored rounds, split by all-time vs current season
+  function stationRecords(){
+    const all={}, seas={};
+    for(let s=1;s<=11;s++){ all[s]=RECORD_SEED[s]||0; seas[s]=RECORD_SEED[s]||0; }
+    const byRound={};
+    state.throws.forEach(t=>{ if(t.station>=1&&t.station<=11){ const k=t.round+'|'+t.station; (byRound[k]=byRound[k]||[]).push(t); } });
+    Object.keys(byRound).forEach(k=>{ const list=byRound[k]; const s=list[0].station; const sub=stationSubtotal(list); all[s]=Math.max(all[s],sub); if(seasonOf(list[0].round)===CUR_SEASON) seas[s]=Math.max(seas[s],sub); });
+    return {all,seas};
+  }
+  function stationSubtotal(list){ let sub=list.reduce((a,t)=>a+effectivePoints(t),0); const pal=palindromeFor(list); if(pal) sub+=pal.bonus; return sub; }
 
   const STATIONS={
     1:{bearing:246,dist:53},2:{bearing:184,dist:47},3:{bearing:207,dist:59},
@@ -231,12 +294,12 @@
     const ns='http://www.w3.org/2000/svg';
     const mk=t=>document.createElementNS(ns,t);
 
-    // dot patterns for the Bonus Station skin
+    // dot patterns for the Bonus Station skin — all muted (~30% opacity) for a subtle texture
     const defs=mk('defs');
-    const pat=(id,tile,r,fill)=>{ const p=mk('pattern'); p.setAttribute('id',id); p.setAttribute('width',tile); p.setAttribute('height',tile); p.setAttribute('patternUnits','userSpaceOnUse'); [[tile*0.25,tile*0.25],[tile*0.75,tile*0.75]].forEach(([cx,cy])=>{ const c=mk('circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r); c.setAttribute('fill',fill); p.appendChild(c); }); defs.appendChild(p); };
-    pat('ringW',7,1.15,'#FFFFFF');   // dense small white dots for scoring rings
-    pat('obW',13,2.2,'#FFFFFF');      // big white dots for black OB quads
-    pat('obB',13,2.2,'#111111');      // big black dots for white OB quads
+    const pat=(id,tile,r,fill,op)=>{ const p=mk('pattern'); p.setAttribute('id',id); p.setAttribute('width',tile); p.setAttribute('height',tile); p.setAttribute('patternUnits','userSpaceOnUse'); [[tile*0.25,tile*0.25],[tile*0.75,tile*0.75]].forEach(([cx,cy])=>{ const c=mk('circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r); c.setAttribute('fill',fill); c.setAttribute('opacity',op); p.appendChild(c); }); defs.appendChild(p); };
+    pat('ringW',7,1.15,'#FFFFFF',0.30);   // dense small white dots for scoring rings
+    pat('obW',13,2.2,'#FFFFFF',0.35);      // muted white dots for black OB quads
+    pat('obB',13,2.2,'#111111',0.35);      // muted dark dots for white OB quads
     svg.appendChild(defs);
     const bg=mk('rect'); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H); bg.setAttribute('fill',PAL.paper); svg.appendChild(bg);
 
@@ -405,18 +468,34 @@
     } else el.innerHTML=`Station ${state.station} so far: <strong>${base} pts</strong> (${list.length}/5)`;
   }
 
+  const ICON_TROPHY='<svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:-2px"><path fill="var(--brass)" stroke="var(--ink)" stroke-width="1" d="M6 3h12v3a6 6 0 0 1-12 0V3z"/><path fill="none" stroke="var(--ink)" stroke-width="1.5" d="M6 4H3v2a3 3 0 0 0 3 3M18 4h3v2a3 3 0 0 1-3 3"/><rect x="10.5" y="11" width="3" height="4" fill="var(--brass)" stroke="var(--ink)" stroke-width="0.8"/><rect x="8" y="15" width="8" height="2.4" rx="0.6" fill="var(--ink)"/></svg>';
+  const ICON_STAR='<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-2px"><path fill="none" stroke="var(--ink)" stroke-width="2" d="M12 2l2.9 6.3 6.8.8-5 4.6 1.3 6.7L12 17.8 5.7 21.2 7 14.5l-5-4.6 6.8-.8z"/></svg>';
+
   function updateLog(){
     const wrap=document.getElementById('logWrap'); const roundThrows=state.throws.filter(t=>t.round===state.round);
-    if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='0'; return; }
+    if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='E'; return; }
     const byStation={}; roundThrows.forEach(t=>{ byStation[t.station]=byStation[t.station]||[]; byStation[t.station].push(t); });
-    let rows='',grand=0;
-    Object.keys(byStation).sort((a,b)=>a-b).forEach(st=>{ const list=byStation[st].sort((a,b)=>a.throw-b.throw); const bonusStation=Number(st)===BONUS; let subtotal=list.reduce((a,t)=>a+throwPoints(t),0);
-      let pills=list.map(t=>{ const base=`<span class="score-pill" style="background:${colorForScore(t.score)}">${ringPoints(t)}</span>`; return t.bonus?base+`<span class="score-pill bonus-pill">+${t.bonus}</span>`:base; }).join('');
-      if(!bonusStation){ const pal=palindromeFor(list); if(pal){ subtotal+=pal.bonus; const sign=pal.bonus>=0?'+':'−',mag=Math.abs(pal.bonus),cls=pal.penalty?'score-pill pal-pill pal-penalty':'score-pill pal-pill'; pills+=`<span class="${cls}" title="${pal.label}">${sign}${mag}</span>`; } }
-      grand+=subtotal; const label=bonusStation?'<span style="color:var(--brass);font-weight:900;">Bonus</span>':st; rows+=`<tr><td>${label}</td><td>${pills}</td><td style="text-align:right;font-weight:700;">${subtotal}</td></tr>`;
+    const rec=stationRecords();
+    let rows='', raw=0, relPar=0, run=0, bonusRow='';
+    const fmt=v=> v>0?`+${v}`:(v<0?`\u2212${Math.abs(v)}`:'E');
+    Object.keys(byStation).sort((a,b)=>a-b).forEach(stKey=>{
+      const st=Number(stKey); const list=byStation[stKey].sort((a,b)=>a.throw-b.throw);
+      if(st===BONUS){ const pts=list.reduce((a,t)=>a+effectivePoints(t),0); raw+=pts;
+        bonusRow=`<tr><td style="font-weight:900;color:var(--brass)">Bonus</td><td style="text-align:center;font-weight:700">${pts}</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:right;color:var(--dust)">\u2014</td></tr>`;
+        return; }
+      const sub=stationSubtotal(list); raw+=sub;
+      const complete=list.length>=5; const d=sub-PAR[st];
+      let mark=''; if(complete){ if(sub>=rec.all[st]) mark=' '+ICON_TROPHY; else if(sub>=rec.seas[st]) mark=' '+ICON_STAR; }
+      let diffCell='<span style="color:var(--dust)">\u00b7</span>', runCell='';
+      if(complete){ relPar+=d; run=relPar; const above=d>0;
+        diffCell=`<span style="font-weight:900;color:${above?'var(--brass)':'var(--ink)'}">${fmt(d)}</span>`;
+        runCell=`<span style="font-family:'Rye',serif;color:var(--ink)">${fmt(run)}</span>`; }
+      rows+=`<tr><td style="font-weight:700">${st}${mark}</td><td style="text-align:center;font-weight:700">${sub}</td><td style="text-align:center;color:var(--dust)">${PAR[st]}</td><td style="text-align:center">${diffCell}</td><td style="text-align:right;font-weight:900">${runCell}</td></tr>`;
     });
-    wrap.innerHTML=`<table><thead><tr><th>Station</th><th>Throws</th><th style="text-align:right;">Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
-    document.getElementById('grandTotal').textContent=grand;
+    wrap.innerHTML=`<table><thead><tr><th>St</th><th style="text-align:center">Pts</th><th style="text-align:center">Par</th><th style="text-align:center">+/\u2212</th><th style="text-align:right">Run</th></tr></thead><tbody>${rows}${bonusRow}</tbody></table>
+      <div class="legend">${ICON_TROPHY} all-time best &nbsp;&nbsp; ${ICON_STAR} season best</div>`;
+    // footer: round vs par (big), raw points secondary
+    document.getElementById('grandTotal').innerHTML=`${fmt(relPar)}<span style="font-family:'Saira Condensed',sans-serif;font-size:0.8rem;color:var(--dust);font-weight:700;margin-left:8px;letter-spacing:0;">${raw} pts</span>`;
   }
 
   function render(){
@@ -455,7 +534,9 @@
   document.getElementById('showAllToggle').addEventListener('change',render);
   document.getElementById('alignToggle').addEventListener('change',(e)=>{ state.align=e.target.checked; saveState(); render(); });
   document.getElementById('roundInput').addEventListener('input',(e)=>{ const v=e.target.value; state.round=v===''?null:Number(v); saveState(); render(); });
-  document.getElementById('exportCsv').addEventListener('click',()=>{ downloadBlob(toCSV(),`landing-round-${state.round||'session'}.csv`,'text/csv'); });
+  document.getElementById('exportCsv').addEventListener('click',()=>{ const n=new Date(),p=x=>String(x).padStart(2,'0'); const stamp=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`; downloadBlob(toCSV(),`landing-round-${state.round||'session'}_${stamp}.csv`,'text/csv'); });
+  document.getElementById('rulesBtn').addEventListener('click',()=>{ document.getElementById('rulesOverlay').classList.add('open'); window.scrollTo(0,0); });
+  document.getElementById('rulesBack').addEventListener('click',()=>{ document.getElementById('rulesOverlay').classList.remove('open'); });
   document.getElementById('resetSession').addEventListener('click',()=>{ if(!confirm('Clear all logged throws for this session? This cannot be undone.')) return; state.throws=[]; state.meta={}; saveState(); render(); });
 
   buildTarget();
