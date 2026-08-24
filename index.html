@@ -221,8 +221,15 @@
     const dl=document.getElementById('dotLayer'); if(dl) dl.style.display=bonus?'':'none';
   }
 
-  // points from the ring only (Bonus Station doubles rings; OOB banks a flat 1)
-  function ringPoints(t){ if(t.station===BONUS){ return t.score===0 ? 1 : t.score*2; } return t.score; }
+  // points from the ring only (Bonus Station doubles rings; ring-band OOB banks a flat 1;
+  // a throw logged with no band at all — beyond the whole board — scores a true 0)
+  function ringPoints(t){
+    if(t.station===BONUS){
+      if(t.score===0){ return t.band===null ? 0 : 1; }
+      return t.score*2;
+    }
+    return t.score;
+  }
   function effectivePoints(t){ return ringPoints(t) + (t.bonus||0); }
 
   function colorForScore(s){ return {10:RINGER_COL,3:C3_CENTER,2:CELLS.r2.left,1:CELLS.r1.left,0:'#8E7E66'}[s]; }
@@ -286,6 +293,27 @@
   let cellEls={}, cornerEls={};
   function cellKey(band,quad){ return `${band}|${quad||''}`; }
   const UNDO_PATH="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z";
+
+  // ---- two-tap arm/confirm for Ringer & Can; single-tap for Bonus-only "beyond board" ----
+  let armedCorner=null, armedTimer=null;
+  const ARM_TIMEOUT_MS=3000;
+  function cornerBounds(id){ return { undo:{x:0,y:0}, complete:{x:CX,y:0}, ringer:{x:0,y:CY}, can:{x:CX,y:CY} }[id]; }
+  function setArmedVisual(id,on){
+    const c=cornerEls[id]; if(!c) return;
+    if(on){
+      if(!c.armedRect){
+        const ns='http://www.w3.org/2000/svg'; const b=cornerBounds(id);
+        const r=document.createElementNS(ns,'rect');
+        r.setAttribute('x',b.x+4); r.setAttribute('y',b.y+4);
+        r.setAttribute('width',CX-8); r.setAttribute('height',CY-8);
+        r.setAttribute('fill','none'); r.setAttribute('stroke','#FFFFFF'); r.setAttribute('stroke-width','4');
+        r.setAttribute('pointer-events','none');
+        c.el.parentNode.appendChild(r); c.armedRect=r;
+      }
+    } else if(c.armedRect){ c.armedRect.remove(); c.armedRect=null; }
+  }
+  function clearArmed(){ if(armedTimer){ clearTimeout(armedTimer); armedTimer=null; } if(armedCorner){ setArmedVisual(armedCorner,false); armedCorner=null; } }
+  function armCorner(id){ clearArmed(); armedCorner=id; setArmedVisual(id,true); armedTimer=setTimeout(clearArmed,ARM_TIMEOUT_MS); }
 
   function buildTarget(){
     const svg=document.getElementById('target');
@@ -371,6 +399,7 @@
     function onDown(evt){
       const {sx,sy}=svgPt(evt);
       const corner=cornerAt(sx,sy);
+      if(armedCorner && corner!==armedCorner){ clearArmed(); }
       if(corner){ evt.preventDefault(); activeCorner=corner; pressCorner(corner); return; }
       if(currentStationFull()) return;
       if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; }
@@ -386,7 +415,19 @@
     }
     function onUp(evt){
       if(activeCorner){ evt.preventDefault(); const id=activeCorner; activeCorner=null; revertCorner(id);
-        if(id==='undo') undoLast(); else if(id==='ringer') tapRinger(); else if(id==='can') toggleCanBonus(); return; }
+        if(id==='undo'){ clearArmed(); undoLast(); }
+        else if(id==='ringer'||id==='can'){
+          if(armedCorner===id){ clearArmed(); if(id==='ringer') tapRinger(); else toggleCanBonus(); }
+          else { armCorner(id); }
+        }
+        else if(id==='complete'){
+          if(isBonus()){
+            if(currentStationFull()) return;
+            if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; }
+            logThrow(0,null,null,null,null);
+          }
+        }
+        return; }
       if(!activeKey) return; evt.preventDefault();
       const key=activeKey; activeKey=null; if(!cellEls[key]) return; confirmCell(key);
       const [band,quad]=key.split('|'); const score=band==='c3'?3:band==='r2'?2:band==='r1'?1:0;
@@ -435,7 +476,7 @@
   function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; const amt=isBonus()?CAN_BONUS*2:CAN_BONUS; last.bonus=last.bonus?0:amt; saveState(); render(); }
   function flashStationSummary(msg){ const el=document.getElementById('stationSummary'); el.textContent=msg; }
   function undo(){ const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===state.round).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
-  function changeStation(delta){ state.station=((state.station-1+delta+12)%12)+1; render(); }
+  function changeStation(delta){ clearArmed(); state.station=((state.station-1+delta+12)%12)+1; render(); }
 
   function updateThrowDots(){
     const wrap=document.getElementById('completeCorner'); if(!wrap) return; wrap.innerHTML='';
@@ -533,11 +574,11 @@
   document.getElementById('nextStation').addEventListener('click',()=>changeStation(1));
   document.getElementById('showAllToggle').addEventListener('change',render);
   document.getElementById('alignToggle').addEventListener('change',(e)=>{ state.align=e.target.checked; saveState(); render(); });
-  document.getElementById('roundInput').addEventListener('input',(e)=>{ const v=e.target.value; state.round=v===''?null:Number(v); saveState(); render(); });
+  document.getElementById('roundInput').addEventListener('input',(e)=>{ clearArmed(); const v=e.target.value; state.round=v===''?null:Number(v); saveState(); render(); });
   document.getElementById('exportCsv').addEventListener('click',()=>{ const n=new Date(),p=x=>String(x).padStart(2,'0'); const stamp=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`; downloadBlob(toCSV(),`landing-round-${state.round||'session'}_${stamp}.csv`,'text/csv'); });
-  document.getElementById('rulesBtn').addEventListener('click',()=>{ document.getElementById('rulesOverlay').classList.add('open'); window.scrollTo(0,0); });
+  document.getElementById('rulesBtn').addEventListener('click',()=>{ clearArmed(); document.getElementById('rulesOverlay').classList.add('open'); window.scrollTo(0,0); });
   document.getElementById('rulesBack').addEventListener('click',()=>{ document.getElementById('rulesOverlay').classList.remove('open'); });
-  document.getElementById('resetSession').addEventListener('click',()=>{ if(!confirm('Clear all logged throws for this session? This cannot be undone.')) return; state.throws=[]; state.meta={}; saveState(); render(); });
+  document.getElementById('resetSession').addEventListener('click',()=>{ if(!confirm('Clear all logged throws for this session? This cannot be undone.')) return; clearArmed(); state.throws=[]; state.meta={}; saveState(); render(); });
 
   buildTarget();
   loadState();
