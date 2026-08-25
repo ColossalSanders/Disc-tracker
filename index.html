@@ -300,6 +300,18 @@
 
   function storageBackend(){ try{const t='__probe__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage;}catch(e){return null;} }
   function updateRoundDisplay(){ const el=document.getElementById('roundValue'); if(el) el.textContent=dayRoundLabel(currentRoundId()); }
+  function todayStr(){ const n=new Date(),p=x=>String(x).padStart(2,'0'); return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`; }
+  function maybeStartNewDay(){
+    // if the active round was actually played on an earlier date, silently start
+    // today's Round 1 so a plain page refresh never shows a stale day's tally.
+    const rid=currentRoundId(), m=state.meta[rid];
+    if(m&&m.date&&m.date!==todayStr()){
+      const id=state.nextRoundId++;
+      state.roundOrder.push(id);
+      state.roundPointer=state.roundOrder.length-1;
+      state.station=1;
+    }
+  }
   function loadState(){
     const store=storageBackend();
     if(!store){ storageAvailable=false; showStorageNote(); updateRoundDisplay(); render(); return; }
@@ -330,6 +342,8 @@
       }
     }catch(e){}
     if(!Array.isArray(state.roundOrder)||state.roundOrder.length===0){ state.roundOrder=[1]; state.roundPointer=0; state.nextRoundId=2; }
+    maybeStartNewDay();
+    saveState();
     updateRoundDisplay(); render();
   }
   function showStorageNote(){ const el=document.getElementById('storageNote'); if(el) el.style.display='block'; }
