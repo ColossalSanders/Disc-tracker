@@ -121,7 +121,7 @@
 
 <div class="export-row">
   <button id="exportCsv">Export<br>Scores</button>
-  <button id="resetSession" class="danger">Clear<br>Session</button>
+  <button id="resetSession" class="danger">Erase<br>All Data</button>
   <button id="rulesBtn" class="rules">Rules &amp;<br>Scoring</button>
 </div>
 
@@ -187,7 +187,7 @@
   const ROUND_PAR=Object.values(PAR).reduce((a,b)=>a+b,0); // 108
   const CUR_SEASON=2026;
   // seeded per-station bests from logged 2026 rounds (season == all-time for now)
-  const RECORD_SEED={1:24,2:27,3:18,4:17,5:14,6:20,7:18,8:19,9:16,10:10,11:27};
+  const RECORD_SEED={1:25,2:27,3:26,4:17,5:18,6:20,7:21,8:20,9:16,10:17,11:29};
   function seasonOf(round){ const m=state.meta&&state.meta[round]; if(m&&m.date){ const y=parseInt(m.date.slice(0,4),10); if(!isNaN(y)) return y; } return CUR_SEASON; }
   // best subtotal per station across stored rounds, split by all-time vs current season
   function stationRecords(){
@@ -277,15 +277,59 @@
     return {cx,cy};
   }
 
-  let state={ round:1, station:1, align:true, meta:{}, throws:[] };
+  // A "round" has two identities: a persistent internal id (roundId — never reused,
+  // so throws from different days never collide) and a day-relative display label
+  // ("Round 1, 2, 3...") computed on the fly from that round's date. roundOrder is the
+  // full history of round ids ever created, in creation order; roundPointer is which
+  // one is active for play/editing right now.
+  let state={ station:1, align:true, meta:{}, throws:[], roundOrder:[1], roundPointer:0, nextRoundId:2 };
   const STORAGE_KEY='landing-session'; let storageAvailable=true;
 
+  function currentRoundId(){ return state.roundOrder[state.roundPointer]; }
+  function dateForRound(roundId){
+    const m=state.meta&&state.meta[roundId];
+    if(m&&m.date) return m.date;
+    const n=new Date(),p=x=>String(x).padStart(2,'0');
+    return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;
+  }
+  function dayRoundLabel(roundId){
+    const d=dateForRound(roundId); let n=0;
+    for(const rid of state.roundOrder){ if(dateForRound(rid)===d){ n++; if(rid===roundId) return n; } }
+    return n||1;
+  }
+
   function storageBackend(){ try{const t='__probe__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage;}catch(e){return null;} }
-  function updateRoundDisplay(){ const el=document.getElementById('roundValue'); if(el) el.textContent=state.round; }
+  function updateRoundDisplay(){ const el=document.getElementById('roundValue'); if(el) el.textContent=dayRoundLabel(currentRoundId()); }
   function loadState(){
     const store=storageBackend();
     if(!store){ storageAvailable=false; showStorageNote(); updateRoundDisplay(); render(); return; }
-    try{ const raw=store.getItem(STORAGE_KEY); if(raw){ const p=JSON.parse(raw); if(p&&Array.isArray(p.throws)){ state=p; if(!state.meta)state.meta={}; if(typeof state.align!=='boolean')state.align=true; if(!state.round)state.round=1; } } }catch(e){}
+    try{
+      const raw=store.getItem(STORAGE_KEY);
+      if(raw){
+        const p=JSON.parse(raw);
+        if(p&&Array.isArray(p.throws)){
+          state=p;
+          if(!state.meta) state.meta={};
+          if(typeof state.align!=='boolean') state.align=true;
+          if(!Array.isArray(state.roundOrder)){
+            // migrate a legacy flat-round-number save into the new persistent-id model
+            const legacyRound=state.round||1;
+            const ids=Array.from(new Set(state.throws.map(t=>t.round)));
+            if(!ids.includes(legacyRound)) ids.push(legacyRound);
+            ids.sort((a,b)=>a-b);
+            state.roundOrder=ids.length?ids:[1];
+            state.roundPointer=Math.max(0,state.roundOrder.indexOf(legacyRound));
+            state.nextRoundId=Math.max(...state.roundOrder,legacyRound)+1;
+            delete state.round;
+          }
+          if(typeof state.roundPointer!=='number'||state.roundPointer<0||state.roundPointer>=state.roundOrder.length){
+            state.roundPointer=state.roundOrder.length-1;
+          }
+          if(!state.nextRoundId) state.nextRoundId=Math.max(...state.roundOrder,0)+1;
+        }
+      }
+    }catch(e){}
+    if(!Array.isArray(state.roundOrder)||state.roundOrder.length===0){ state.roundOrder=[1]; state.roundPointer=0; state.nextRoundId=2; }
     updateRoundDisplay(); render();
   }
   function showStorageNote(){ const el=document.getElementById('storageNote'); if(el) el.style.display='block'; }
@@ -295,7 +339,7 @@
   function stampEnd(round){ if(round===null||round==='')return; if(!state.meta)state.meta={}; if(!state.meta[round])state.meta[round]={}; const n=new Date(),p=x=>String(x).padStart(2,'0'); state.meta[round].endDate=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`; state.meta[round].endTime=`${p(n.getHours())}:${p(n.getMinutes())}`; }
   function roundDurationMin(round){ const m=state.meta&&state.meta[round]; if(!m||!m.date||!m.time||!m.endDate||!m.endTime)return''; const s=new Date(`${m.date}T${m.time}:00`),e=new Date(`${m.endDate}T${m.endTime}:00`),d=Math.round((e-s)/60000); return d>=0?d:''; }
 
-  function throwsForStation(st){ return state.throws.filter(t=>t.station===st&&t.round===state.round); }
+  function throwsForStation(st){ return state.throws.filter(t=>t.station===st&&t.round===currentRoundId()); }
 
   let cellEls={}, cornerEls={};
   function cellKey(band,quad){ return `${band}|${quad||''}`; }
@@ -410,7 +454,6 @@
       if(armedCorner && corner!==armedCorner){ clearArmed(); }
       if(corner){ evt.preventDefault(); activeCorner=corner; pressCorner(corner); return; }
       if(currentStationFull()) return;
-      if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; }
       evt.preventDefault();
       const cell=groundCellAt(sx,sy); if(!cell) return;
       const key=cellKey(cell.band,cell.quad); activeKey=key; pressCell(key);
@@ -431,7 +474,6 @@
         else if(id==='complete'){
           if(isBonus()){
             if(currentStationFull()) return;
-            if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; }
             logThrow(0,null,null,null,null);
           }
         }
@@ -468,7 +510,7 @@
     const scene=document.getElementById('scene'); let g=document.getElementById('markerGroup'); if(g) g.remove();
     const ns='http://www.w3.org/2000/svg'; g=document.createElementNS(ns,'g'); g.setAttribute('id','markerGroup'); if(scene) scene.appendChild(g);
     const showAll=document.getElementById('showAllToggle').checked;
-    const list=showAll?state.throws.filter(t=>t.round===state.round):throwsForStation(state.station);
+    const list=showAll?state.throws.filter(t=>t.round===currentRoundId()):throwsForStation(state.station);
     const seen={};
     list.forEach(t=>{ if(t.x===null||t.y===null) return; const key=`${t.x},${t.y}`; seen[key]=seen[key]||0; const n=seen[key]++; let ox=0,oy=0; if(n>0){const a=n*2.4; ox=Math.cos(a)*4.2*Math.ceil(n/6); oy=Math.sin(a)*4.2*Math.ceil(n/6);} 
       const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',t.x+ox); c.setAttribute('cy',t.y+oy); c.setAttribute('r',5.5); c.setAttribute('fill',markerFill()); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width','1.4'); c.setAttribute('opacity', showAll&&t.station!==state.station?'0.45':'0.95'); g.appendChild(c);
@@ -477,13 +519,13 @@
   }
 
   function currentStationFull(){ return throwsForStation(state.station).length>=stationCap(state.station); }
-  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const throwNum=throwsForStation(state.station).length+1; stampNow(state.round); state.throws.push({round:state.round,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if((state.station===11&&throwNum===5)||(state.station===BONUS&&throwNum===1)) stampEnd(state.round); saveState(); render(); }
+  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const rid=currentRoundId(); const throwNum=throwsForStation(state.station).length+1; stampNow(rid); state.throws.push({round:rid,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if((state.station===11&&throwNum===5)||(state.station===BONUS&&throwNum===1)) stampEnd(rid); saveState(); render(); }
   function throwPoints(t){ return effectivePoints(t); }
-  function tapRinger(){ if(currentStationFull()) return; if(state.round===null||state.round===''){ flashStationSummary('Enter a round number first.'); return; } logThrow(10,null,null,null,null); }
+  function tapRinger(){ if(currentStationFull()) return; logThrow(10,null,null,null,null); }
   function undoLast(){ undo(); }
   function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; const amt=isBonus()?CAN_BONUS*2:CAN_BONUS; last.bonus=last.bonus?0:amt; saveState(); render(); }
   function flashStationSummary(msg){ const el=document.getElementById('stationSummary'); el.textContent=msg; }
-  function undo(){ const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===state.round).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
+  function undo(){ const rid=currentRoundId(); const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===rid).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
   function changeStation(delta){ clearArmed(); state.station=((state.station-1+delta+12)%12)+1; render(); }
 
   function updateThrowDots(){
@@ -521,7 +563,7 @@
   const ICON_STAR='<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-2px"><path fill="none" stroke="var(--ink)" stroke-width="2" d="M12 2l2.9 6.3 6.8.8-5 4.6 1.3 6.7L12 17.8 5.7 21.2 7 14.5l-5-4.6 6.8-.8z"/></svg>';
 
   function updateLog(){
-    const wrap=document.getElementById('logWrap'); const roundThrows=state.throws.filter(t=>t.round===state.round);
+    const wrap=document.getElementById('logWrap'); const roundThrows=state.throws.filter(t=>t.round===currentRoundId());
     if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='E'; return; }
     const byStation={}; roundThrows.forEach(t=>{ byStation[t.station]=byStation[t.station]||[]; byStation[t.station].push(t); });
     const rec=stationRecords();
@@ -565,7 +607,7 @@
     const palMap=palindromeMap();
     const rows=state.throws.map(t=>{ const bonus=t.bonus||0,band=t.band||'',quad=t.quad||''; const m=(state.meta&&state.meta[t.round])||{date:'',time:''}; const stamp=`${m.date||''},${m.time||''},${roundDurationMin(t.round)}`; const stn=STATIONS[t.station]||{dist:null,bearing:null};
       const distCol=stn.dist==null?'':stn.dist, bearingCol=stn.bearing==null?'':stn.bearing;
-      const core=`${stamp},${t.round},${t.station},${distCol},${bearingCol},${t.throw},${t.score},${band},${quad},${bonus},${effectivePoints(t)}`;
+      const core=`${stamp},${dayRoundLabel(t.round)},${t.station},${distCol},${bearingCol},${t.throw},${t.score},${band},${quad},${bonus},${effectivePoints(t)}`;
       const pal=(t.throw===5)?palMap[t.round+'|'+t.station]:null; const palName=pal?pal.label.replace(/·/g,'-'):''; const palBonus=pal?pal.bonus:'';
       // position in REAL INCHES from the measurement geometry (band+quad), not the display coords.
       // ringers (band null) have no position.
@@ -582,12 +624,18 @@
   document.getElementById('nextStation').addEventListener('click',()=>changeStation(1));
   document.getElementById('showAllToggle').addEventListener('change',render);
   document.getElementById('alignToggle').addEventListener('change',(e)=>{ state.align=e.target.checked; saveState(); render(); });
-  document.getElementById('roundDec').addEventListener('click',()=>{ clearArmed(); state.round=Math.max(1,(state.round||1)-1); updateRoundDisplay(); saveState(); render(); });
-  document.getElementById('roundInc').addEventListener('click',()=>{ clearArmed(); state.round=(state.round||1)+1; updateRoundDisplay(); saveState(); render(); });
-  document.getElementById('exportCsv').addEventListener('click',()=>{ const n=new Date(),p=x=>String(x).padStart(2,'0'); const stamp=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`; downloadBlob(toCSV(),`landing-round-${state.round||'session'}_${stamp}.csv`,'text/csv'); });
+  document.getElementById('roundDec').addEventListener('click',()=>{ clearArmed(); if(state.roundPointer>0) state.roundPointer--; updateRoundDisplay(); saveState(); render(); });
+  document.getElementById('roundInc').addEventListener('click',()=>{ clearArmed(); if(state.roundPointer<state.roundOrder.length-1){ state.roundPointer++; } else { const id=state.nextRoundId++; state.roundOrder.push(id); state.roundPointer=state.roundOrder.length-1; } updateRoundDisplay(); saveState(); render(); });
+  document.getElementById('exportCsv').addEventListener('click',()=>{ const n=new Date(),p=x=>String(x).padStart(2,'0'); const stamp=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`; downloadBlob(toCSV(),`landing-round-${dayRoundLabel(currentRoundId())}_${stamp}.csv`,'text/csv'); });
   document.getElementById('rulesBtn').addEventListener('click',()=>{ clearArmed(); document.getElementById('rulesOverlay').classList.add('open'); window.scrollTo(0,0); });
   document.getElementById('rulesBack').addEventListener('click',()=>{ document.getElementById('rulesOverlay').classList.remove('open'); });
-  document.getElementById('resetSession').addEventListener('click',()=>{ if(!confirm('Clear all logged throws for this session? This cannot be undone.')) return; clearArmed(); state.throws=[]; state.meta={}; state.round=1; updateRoundDisplay(); saveState(); render(); });
+  document.getElementById('resetSession').addEventListener('click',()=>{
+    if(!confirm('Erase ALL logged data — every round you have ever played, plus season and all-time records? This cannot be undone.')) return;
+    if(!confirm('Really sure? This is permanent and cannot be recovered.')) return;
+    clearArmed();
+    state={ station:1, align:true, meta:{}, throws:[], roundOrder:[1], roundPointer:0, nextRoundId:2 };
+    updateRoundDisplay(); saveState(); render();
+  });
 
   buildTarget();
   loadState();
