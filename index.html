@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Landing Tracker</title>
+<title>Disc-O</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rye&family=Saira+Condensed:wght@400;600;700;900&display=swap');
   :root{
@@ -83,8 +83,8 @@
 
 <header class="marquee">
   <p class="eyebrow">Eleven Stations &middot; Five Discs Each</p>
-  <h1>Landing Tracker</h1>
-  <p class="rule">Every Throw Recorded</p>
+  <h1>Disc-O</h1>
+  <p class="rule">Landing Tracker</p>
 </header>
 
 <div class="stage">
@@ -388,8 +388,8 @@
     const defs=mk('defs');
     const pat=(id,tile,r,fill,op)=>{ const p=mk('pattern'); p.setAttribute('id',id); p.setAttribute('width',tile); p.setAttribute('height',tile); p.setAttribute('patternUnits','userSpaceOnUse'); [[tile*0.25,tile*0.25],[tile*0.75,tile*0.75]].forEach(([cx,cy])=>{ const c=mk('circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r); c.setAttribute('fill',fill); c.setAttribute('opacity',op); p.appendChild(c); }); defs.appendChild(p); };
     pat('ringW',7,1.15,'#FFFFFF',0.30);   // dense small white dots for scoring rings
-    pat('obW',13,2.2,'#FFFFFF',0.35);      // muted white dots for black OB quads
-    pat('obB',13,2.2,'#111111',0.35);      // muted dark dots for white OB quads
+    pat('obW',13,1.15,'#FFFFFF',0.35);      // muted white dots for black OB quads
+    pat('obB',13,1.15,'#111111',0.35);      // muted dark dots for white OB quads
     svg.appendChild(defs);
     const bg=mk('rect'); bg.setAttribute('width',VB_W); bg.setAttribute('height',VB_H); bg.setAttribute('fill',PAL.paper); svg.appendChild(bg);
 
@@ -594,13 +594,13 @@
       let diffCell='<span style="color:var(--dust)">\u00b7</span>', runCell='';
       if(complete){ relPar+=d; run=relPar; const above=d>0;
         diffCell=`<span style="font-weight:900;color:${above?'var(--brass)':'var(--ink)'}">${fmt(d)}</span>`;
-        runCell=`<span style="font-family:'Rye',serif;color:var(--ink)">${fmt(run)}</span>`; }
+        runCell=`<span style="font-family:'Rye',serif;color:${run>0?'var(--brass)':'var(--ink)'}">${fmt(run)}</span>`; }
       rows+=`<tr><td style="font-weight:700;font-size:1.05rem">${st}${mark}</td><td style="text-align:center;font-weight:700;font-size:1.05rem">${sub}</td><td style="text-align:center;color:var(--dust)">${PAR[st]}</td><td style="text-align:center;font-size:1.05rem">${diffCell}</td><td style="text-align:right;font-weight:900;font-size:1.05rem">${runCell}</td></tr>`;
     });
     wrap.innerHTML=`<table><thead><tr><th>St</th><th style="text-align:center">Pts</th><th style="text-align:center">Par</th><th style="text-align:center">+/\u2212</th><th style="text-align:right">Run</th></tr></thead><tbody>${rows}${bonusRow}</tbody></table>
       <div class="legend">${ICON_TROPHY} all-time best &nbsp;&nbsp; ${ICON_STAR} season best</div>`;
     // footer: round vs par (big), raw points secondary
-    document.getElementById('grandTotal').innerHTML=`${fmt(relPar)}<span style="font-family:'Saira Condensed',sans-serif;font-size:0.8rem;color:var(--dust);font-weight:700;margin-left:8px;letter-spacing:0;">${raw} pts</span>`;
+    document.getElementById('grandTotal').innerHTML=`<span style="color:${relPar>0?'var(--brass)':'var(--ink)'}">${fmt(relPar)}</span><span style="font-family:'Saira Condensed',sans-serif;font-size:0.8rem;color:var(--dust);font-weight:700;margin-left:8px;letter-spacing:0;">${raw} pts</span>`;
   }
 
   function render(){
