@@ -1,8 +1,6 @@
-# Disc-tracker
-Scoring app for novel VT disc golf game
 ## The Game
 
-An 11-station backyard disc golf course, played with a custom scoring target instead of a standard basket. Each station gets 5 throws (one disc at a time) at a ringed target — outer ring, middle ring, inner ring, or a ringer if it goes in clean. Land wide and you score nothing.
+An 11-station backyard disc golf course, played with a custom scoring target instead of a standard basket. Each station gets 5 throws — one disc at a time — at a ringed target: outer ring, middle ring, inner ring, or a ringer if it goes in clean. Land wide of the rings and the throw scores nothing.
 
 **Scoring**
 | Result | Points |
@@ -11,16 +9,16 @@ An 11-station backyard disc golf course, played with a custom scoring target ins
 | Outer ring | 1 |
 | Middle ring | 2 |
 | Inner ring | 3 |
-| Ringer ("cashed") | 10 |
+| Ringer | 10 |
 
-Knock the can off the top of the target for a **+5 bonus** on that throw.
+Knock the can off the top of the target and add a **+5 bonus** to that throw.
 
-**Bonuses:** if all 5 throws at a station land the same value, you earn a bonus on top — the tighter the grouping, the bigger the payoff. Miss all 5, though, and it costs you.
+**Palindrome bonuses.** If all 5 discs at a station land on the exact same value, the station pays out extra — and the payout scales with how good that value is. Five throws in the outer ring earns a modest +1; five in the inner ring is worth +3. It's a reward for tight, repeatable form rather than one lucky shot, and it works against you too: land all 5 as misses and it costs you a −2 penalty. Landing a mix of values, even a good mix, doesn't qualify — it has to be the same result five times running.
 
-**The Bonus Station** closes out the round: one throw, way out at range, with every score doubled.
+**The Bonus Station** closes out the round: one throw, way out at range past all 11 regular stations, with every score doubled. It's the last chance to swing the round before it's final.
 
-**Scoring vs. par:** each station carries a par set from prior play, so your round tracks as +/− par rather than raw points — plus trophy and star marks when you set an all-time or season-best on a station.
+**Scoring vs. par.** Each station carries a par set from prior play, so a round tracks as +/− par rather than raw points — the same logic as golf, where beating the average is the real measure of a good round. A trophy marks an all-time best on a station; a star marks a best for the current season.
 
 ## The App
 
-`Disc-O` — a phone-based scorekeeper built for the course. Tap the target to log where each disc landed, and it tracks every round, station par, and personal record automatically.
+**Disc-O** is a phone-based scorekeeper built for this course. Tap the target where each disc landed and it logs the throw, the station, and the round automatically — tracking every par, every record, and flashing gold the moment you set a new one.
