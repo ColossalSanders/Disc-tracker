@@ -1,7 +1,7 @@
 # Disc-O — Rules
 
 ## The Course
-One basket in the middle of 11 stations, plus one bonus Station.
+One basket in the middle of 11 stations, plus one bonus station.
 
 ## Game Play
 In a one-player game, the player throws five discs from each station toward the basket and a single bonus throw at the end of the round.
