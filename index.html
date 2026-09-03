@@ -32,18 +32,13 @@
   .station-nav{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
   .station-nav button{ width:30px; height:30px; border-radius:50%; border:2px solid var(--ink); background:var(--brass); font-family:'Saira Condensed',sans-serif; font-size:1rem; font-weight:900; line-height:1; color:var(--ink); cursor:pointer; flex-shrink:0; }
   .station-nav button:active{ background:var(--brass-dark); color:var(--paper); }
-  .station-display{ text-align:center; min-width:68px; }
+  .station-display{ text-align:center; min-width:130px; }
   .station-display .cap{ display:block; font-size:0.5rem; font-weight:700; letter-spacing:0.16em; color:var(--dust); text-transform:uppercase; white-space:nowrap; }
   .station-display .num{ font-family:'Rye',serif; font-size:1.3rem; line-height:1.1; color:var(--tent); }
   .target-wrap{ display:flex; justify-content:center; margin-bottom:10px; }
   #target{ width:100%; aspect-ratio:1/1; touch-action:none; cursor:crosshair; display:block; background:var(--paper); }
-  .toggle{ display:flex; align-items:center; gap:7px; color:var(--dust); font-size:0.76rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; }
-  .toggle input{ width:17px; height:17px; accent-color:var(--brass); }
-  .toggle-row{ display:flex; gap:16px; align-items:center; margin:8px 2px; }
-  .align-note{ font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass); margin-left:auto; }
-  .station-summary{ text-align:center; font-size:0.86rem; font-weight:600; letter-spacing:0.06em; color:var(--ink); margin:6px 0 14px; min-height:1.3em; }
-  .station-summary strong{ font-family:'Rye',serif; font-weight:400; font-size:1.05rem; color:var(--tent); }
-  table{ width:100%; border-collapse:collapse; font-size:0.82rem; }
+        .align-note{ display:block; font-size:0.78rem; font-weight:700; letter-spacing:0.03em; text-transform:none; color:var(--brass); margin-top:2px; white-space:nowrap; }
+      table{ width:100%; border-collapse:collapse; font-size:0.82rem; }
   thead th{ text-align:left; color:var(--dust); text-transform:uppercase; letter-spacing:0.16em; font-size:0.62rem; font-weight:700; padding-bottom:7px; border-bottom:2px solid var(--ink); }
   tbody td{ padding:7px 4px; border-bottom:1px dashed rgba(28,20,16,0.22); vertical-align:middle; font-weight:600; }
   tbody tr:last-child td{ border-bottom:none; }
@@ -97,21 +92,13 @@
     </div>
     <div class="station-nav">
       <button id="prevStation" aria-label="Previous station">&lsaquo;</button>
-      <div class="station-display"><span class="cap">Station</span><span class="num" id="stationNum">1</span></div>
+      <div class="station-display"><span class="cap">Station</span><span class="num" id="stationNum">1</span><span class="align-note" id="alignNote"></span></div>
       <button id="nextStation" aria-label="Next station">&rsaquo;</button>
     </div>
   </div>
 </div>
 
 <div class="target-wrap"><svg id="target" xmlns="http://www.w3.org/2000/svg"></svg></div>
-
-<div class="toggle-row">
-  <label class="toggle"><input type="checkbox" id="showAllToggle"> Show all shots</label>
-  <label class="toggle"><input type="checkbox" id="alignToggle" checked> Align to throw</label>
-  <span class="align-note" id="alignNote"></span>
-</div>
-
-<div class="station-summary" id="stationSummary"></div>
 
 <div class="card tally">
   <div class="card-label">Tally Sheet</div>
@@ -199,6 +186,17 @@
     return {all,seas};
   }
   function stationSubtotal(list){ let sub=list.reduce((a,t)=>a+effectivePoints(t),0); const pal=palindromeFor(list); if(pal) sub+=pal.bonus; return sub; }
+
+  // same as stationRecords(), but leaves one round|station combo out of the
+  // calculation — used to find the "best before this attempt" for the new-record flash.
+  function stationRecordsExcluding(exRound,exStation){
+    const all={}, seas={};
+    for(let s=1;s<=11;s++){ all[s]=RECORD_SEED[s]||0; seas[s]=RECORD_SEED[s]||0; }
+    const byRound={};
+    state.throws.forEach(t=>{ if(t.station>=1&&t.station<=11&&!(t.round===exRound&&t.station===exStation)){ const k=t.round+'|'+t.station; (byRound[k]=byRound[k]||[]).push(t); } });
+    Object.keys(byRound).forEach(k=>{ const list=byRound[k]; const s=list[0].station; const sub=stationSubtotal(list); all[s]=Math.max(all[s],sub); if(seasonOf(list[0].round)===CUR_SEASON) seas[s]=Math.max(seas[s],sub); });
+    return {all,seas};
+  }
 
   const STATIONS={
     1:{bearing:246,dist:53},2:{bearing:184,dist:47},3:{bearing:207,dist:59},
@@ -500,6 +498,26 @@
     }
     function onCancel(){ if(activeCorner){ revertCorner(activeCorner); activeCorner=null; } if(activeKey){ revertCell(activeKey); activeKey=null; } }
 
+    // ---- new-record flash: covers the whole target, on top of everything ----
+    const flashOverlay=mk('rect'); flashOverlay.setAttribute('id','recordFlash');
+    flashOverlay.setAttribute('x',0); flashOverlay.setAttribute('y',0);
+    flashOverlay.setAttribute('width',VB_W); flashOverlay.setAttribute('height',VB_H);
+    flashOverlay.setAttribute('fill',PAL.brass); flashOverlay.setAttribute('opacity','0');
+    flashOverlay.setAttribute('pointer-events','none');
+    svg.appendChild(flashOverlay);
+    const flashLabel=mk('text'); flashLabel.setAttribute('id','recordFlashLabel');
+    flashLabel.setAttribute('x',VB_W/2); flashLabel.setAttribute('y',VB_H/2-6);
+    flashLabel.setAttribute('text-anchor','middle'); flashLabel.setAttribute('font-family',"'Rye',serif");
+    flashLabel.setAttribute('font-size','22'); flashLabel.setAttribute('fill',PAL.ink);
+    flashLabel.setAttribute('opacity','0'); flashLabel.setAttribute('pointer-events','none');
+    svg.appendChild(flashLabel);
+    const flashSub=mk('text'); flashSub.setAttribute('id','recordFlashSub');
+    flashSub.setAttribute('x',VB_W/2); flashSub.setAttribute('y',VB_H/2+14);
+    flashSub.setAttribute('text-anchor','middle'); flashSub.setAttribute('font-family',"'Saira Condensed',sans-serif");
+    flashSub.setAttribute('font-size','10'); flashSub.setAttribute('font-weight','700'); flashSub.setAttribute('letter-spacing','1');
+    flashSub.setAttribute('fill',PAL.ink); flashSub.setAttribute('opacity','0'); flashSub.setAttribute('pointer-events','none');
+    svg.appendChild(flashSub);
+
     svg.addEventListener('touchstart',onDown,{passive:false});
     svg.addEventListener('touchmove',onMove,{passive:false});
     svg.addEventListener('touchend',onUp,{passive:false});
@@ -508,6 +526,21 @@
     svg.addEventListener('mousemove',onMove);
     svg.addEventListener('mouseup',onUp);
     svg.addEventListener('mouseleave',onCancel);
+  }
+
+  // pulse the whole target gold with a label, for a new all-time or season best
+  function flashNewRecord(tier, station, pts){
+    const ov=document.getElementById('recordFlash'), lbl=document.getElementById('recordFlashLabel'), sub=document.getElementById('recordFlashSub');
+    if(!ov||!lbl||!sub) return;
+    lbl.textContent = tier==='all' ? 'ALL-TIME BEST' : 'SEASON BEST';
+    sub.textContent = `STATION ${station} \u00b7 ${pts} PTS`;
+    [ov,lbl,sub].forEach(el=>{ el.style.transition='none'; });
+    ov.setAttribute('opacity','0.92'); lbl.setAttribute('opacity','1'); sub.setAttribute('opacity','1');
+    void ov.getBoundingClientRect();
+    setTimeout(()=>{
+      [ov,lbl,sub].forEach(el=>{ el.style.transition='opacity 550ms ease-out'; });
+      ov.setAttribute('opacity','0'); lbl.setAttribute('opacity','0'); sub.setAttribute('opacity','0');
+    }, 650);
   }
 
   function sceneRotation(){ if(!state.align) return 0; const st=STATIONS[state.station]; if(!st||st.bearing==null) return 0; return 180-st.bearing; }
@@ -523,22 +556,28 @@
   function drawMarkers(){
     const scene=document.getElementById('scene'); let g=document.getElementById('markerGroup'); if(g) g.remove();
     const ns='http://www.w3.org/2000/svg'; g=document.createElementNS(ns,'g'); g.setAttribute('id','markerGroup'); if(scene) scene.appendChild(g);
-    const showAll=document.getElementById('showAllToggle').checked;
-    const list=showAll?state.throws.filter(t=>t.round===currentRoundId()):throwsForStation(state.station);
+    const list=throwsForStation(state.station);
     const seen={};
     list.forEach(t=>{ if(t.x===null||t.y===null) return; const key=`${t.x},${t.y}`; seen[key]=seen[key]||0; const n=seen[key]++; let ox=0,oy=0; if(n>0){const a=n*2.4; ox=Math.cos(a)*4.2*Math.ceil(n/6); oy=Math.sin(a)*4.2*Math.ceil(n/6);} 
-      const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',t.x+ox); c.setAttribute('cy',t.y+oy); c.setAttribute('r',5.5); c.setAttribute('fill',markerFill()); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width','1.4'); c.setAttribute('opacity', showAll&&t.station!==state.station?'0.45':'0.95'); g.appendChild(c);
+      const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',t.x+ox); c.setAttribute('cy',t.y+oy); c.setAttribute('r',5.5); c.setAttribute('fill',markerFill()); c.setAttribute('stroke',PAL.ink); c.setAttribute('stroke-width','1.4'); c.setAttribute('opacity','0.95'); g.appendChild(c);
       const lbl=document.createElementNS(ns,'text'); lbl.setAttribute('x',t.x+ox); lbl.setAttribute('y',t.y+oy+2.4); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-family',"'Saira Condensed',sans-serif"); lbl.setAttribute('font-size','6'); lbl.setAttribute('fill',PAL.ink); lbl.setAttribute('font-weight','700'); lbl.textContent=t.throw; g.appendChild(lbl);
     });
   }
 
   function currentStationFull(){ return throwsForStation(state.station).length>=stationCap(state.station); }
-  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const rid=currentRoundId(); const throwNum=throwsForStation(state.station).length+1; stampNow(rid); state.throws.push({round:rid,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if((state.station===11&&throwNum===5)||(state.station===BONUS&&throwNum===1)) stampEnd(rid); saveState(); render(); }
+  function logThrow(score,x,y,band,quad){ if(currentStationFull()) return; const rid=currentRoundId(); const throwNum=throwsForStation(state.station).length+1; stampNow(rid); state.throws.push({round:rid,station:state.station,throw:throwNum,x,y,score,band:band||null,quad:quad||null,bonus:0}); if((state.station===11&&throwNum===5)||(state.station===BONUS&&throwNum===1)) stampEnd(rid); saveState();
+    const st=state.station;
+    if(st>=1&&st<=11&&throwNum===5){
+      const list=throwsForStation(st); const sub=stationSubtotal(list);
+      const prev=stationRecordsExcluding(rid,st);
+      if(sub>prev.all[st]) flashNewRecord('all',st,sub);
+      else if(sub>prev.seas[st]) flashNewRecord('season',st,sub);
+    }
+    render(); }
   function throwPoints(t){ return effectivePoints(t); }
   function tapRinger(){ if(currentStationFull()) return; logThrow(10,null,null,null,null); }
   function undoLast(){ undo(); }
-  function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0){ flashStationSummary('Log the throw first, then add the can bonus.'); return; } const last=list[list.length-1]; const amt=isBonus()?CAN_BONUS*2:CAN_BONUS; last.bonus=last.bonus?0:amt; saveState(); render(); }
-  function flashStationSummary(msg){ const el=document.getElementById('stationSummary'); el.textContent=msg; }
+  function toggleCanBonus(){ const list=throwsForStation(state.station); if(list.length===0) return; const last=list[list.length-1]; const amt=isBonus()?CAN_BONUS*2:CAN_BONUS; last.bonus=last.bonus?0:amt; saveState(); render(); }
   function undo(){ const rid=currentRoundId(); const idx=[...state.throws].map((t,i)=>({t,i})).filter(o=>o.t.round===rid).map(o=>o.i).pop(); if(idx===undefined) return; state.throws.splice(idx,1); saveState(); render(); }
   function changeStation(delta){ clearArmed(); state.station=((state.station-1+delta+12)%12)+1; render(); }
 
@@ -556,62 +595,52 @@
     for(let i=0;i<5;i++){ const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',tcx+i*11); c.setAttribute('cy',ty+13); c.setAttribute('r',3.6); c.setAttribute('fill', i<count?'#FFFFFF':'none'); c.setAttribute('stroke','#FFFFFF'); c.setAttribute('stroke-width','1.3'); wrap.appendChild(c); }
   }
 
-  function updateStationSummary(){
-    const el=document.getElementById('stationSummary'); const list=throwsForStation(state.station);
-    if(isBonus()){
-      if(list.length===0){ el.innerHTML='<strong>Bonus Station</strong> — one throw · scores doubled · OB = 1 pt.'; return; }
-      const t=list[0]; el.innerHTML=`Bonus Station — <strong>${effectivePoints(t)} pts</strong>${t.bonus?' (incl. +'+t.bonus+' can)':''}.`;
-      return;
-    }
-    if(list.length===0){ el.textContent=''; return; }
-    const base=list.reduce((a,t)=>a+throwPoints(t),0);
-    if(list.length>=5){ const pal=palindromeFor(list);
-      if(pal){ const total=base+pal.bonus, mag=Math.abs(pal.bonus);
-        if(pal.penalty) el.innerHTML=`All five missed — <strong>−${mag} penalty</strong>. Station ${state.station}: ${total} pts.`;
-        else el.innerHTML=`Palindrome ${pal.label} — <strong>+${mag} bonus</strong>. Station ${state.station}: ${total} pts.`;
-      } else el.innerHTML=`Station ${state.station} complete — <strong>${base} pts</strong>. Tap › for next station.`;
-    } else el.innerHTML=`Station ${state.station} so far: <strong>${base} pts</strong> (${list.length}/5)`;
-  }
-
   const ICON_TROPHY='<svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:-2px"><path fill="var(--brass)" stroke="var(--ink)" stroke-width="1" d="M6 3h12v3a6 6 0 0 1-12 0V3z"/><path fill="none" stroke="var(--ink)" stroke-width="1.5" d="M6 4H3v2a3 3 0 0 0 3 3M18 4h3v2a3 3 0 0 1-3 3"/><rect x="10.5" y="11" width="3" height="4" fill="var(--brass)" stroke="var(--ink)" stroke-width="0.8"/><rect x="8" y="15" width="8" height="2.4" rx="0.6" fill="var(--ink)"/></svg>';
   const ICON_STAR='<svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align:-2px"><path fill="none" stroke="var(--ink)" stroke-width="2" d="M12 2l2.9 6.3 6.8.8-5 4.6 1.3 6.7L12 17.8 5.7 21.2 7 14.5l-5-4.6 6.8-.8z"/></svg>';
 
   function updateLog(){
     const wrap=document.getElementById('logWrap'); const roundThrows=state.throws.filter(t=>t.round===currentRoundId());
-    if(roundThrows.length===0){ wrap.innerHTML='<div class="empty-log">No throws logged yet for this round.</div>'; document.getElementById('grandTotal').textContent='E'; return; }
     const byStation={}; roundThrows.forEach(t=>{ byStation[t.station]=byStation[t.station]||[]; byStation[t.station].push(t); });
     const rec=stationRecords();
-    let rows='', raw=0, relPar=0, run=0, bonusRow='';
+    let rows='', raw=0, relPar=0, run=0, bonusRow='', anyPlayed=false;
     const fmt=v=> v>0?`+${v}`:(v<0?`\u2212${Math.abs(v)}`:'E');
-    Object.keys(byStation).sort((a,b)=>a-b).forEach(stKey=>{
-      const st=Number(stKey); const list=byStation[stKey].sort((a,b)=>a.throw-b.throw);
-      if(st===BONUS){ const pts=list.reduce((a,t)=>a+effectivePoints(t),0); raw+=pts;
-        bonusRow=`<tr><td style="font-weight:900;color:var(--brass)">Bonus</td><td style="text-align:center;font-weight:700">${pts}</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:right;color:var(--dust)">\u2014</td></tr>`;
-        return; }
+    const dash='<span style="color:var(--dust)">\u2014</span>';
+    for(let st=1; st<=11; st++){
+      const list=(byStation[st]||[]).slice().sort((a,b)=>a.throw-b.throw);
+      if(list.length===0){
+        rows+=`<tr><td style="font-weight:700;font-size:1.05rem;color:var(--dust)">${st}</td><td style="text-align:center">${dash}</td><td style="text-align:center;color:var(--dust)">${PAR[st]}</td><td style="text-align:center">${dash}</td><td style="text-align:right">${dash}</td></tr>`;
+        continue;
+      }
+      anyPlayed=true;
       const sub=stationSubtotal(list); raw+=sub;
       const complete=list.length>=5; const d=sub-PAR[st];
       let mark=''; if(complete){ if(sub>=rec.all[st]) mark=' '+ICON_TROPHY; else if(sub>=rec.seas[st]) mark=' '+ICON_STAR; }
-      let diffCell='<span style="color:var(--dust)">\u00b7</span>', runCell='';
+      let diffCell='<span style="color:var(--dust)">\u00b7</span>', runCell=dash;
       if(complete){ relPar+=d; run=relPar; const above=d>0;
         diffCell=`<span style="font-weight:900;color:${above?'var(--brass)':'var(--ink)'}">${fmt(d)}</span>`;
         runCell=`<span style="font-family:'Rye',serif;color:${run>0?'var(--brass)':'var(--ink)'}">${fmt(run)}</span>`; }
       rows+=`<tr><td style="font-weight:700;font-size:1.05rem">${st}${mark}</td><td style="text-align:center;font-weight:700;font-size:1.05rem">${sub}</td><td style="text-align:center;color:var(--dust)">${PAR[st]}</td><td style="text-align:center;font-size:1.05rem">${diffCell}</td><td style="text-align:right;font-weight:900;font-size:1.05rem">${runCell}</td></tr>`;
-    });
+    }
+    if(byStation[BONUS] && byStation[BONUS].length){
+      const list=byStation[BONUS]; const pts=list.reduce((a,t)=>a+effectivePoints(t),0); raw+=pts;
+      bonusRow=`<tr><td style="font-weight:900;color:var(--brass)">Bonus</td><td style="text-align:center;font-weight:700">${pts}</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:center;color:var(--dust)">\u2014</td><td style="text-align:right;color:var(--dust)">\u2014</td></tr>`;
+    }
     wrap.innerHTML=`<table><thead><tr><th>St</th><th style="text-align:center">Pts</th><th style="text-align:center">Par</th><th style="text-align:center">+/\u2212</th><th style="text-align:right">Run</th></tr></thead><tbody>${rows}${bonusRow}</tbody></table>
       <div class="legend">${ICON_TROPHY} all-time best &nbsp;&nbsp; ${ICON_STAR} season best</div>`;
     // footer: round vs par (big), raw points secondary
-    document.getElementById('grandTotal').innerHTML=`<span style="color:${relPar>0?'var(--brass)':'var(--ink)'}">${fmt(relPar)}</span><span style="font-family:'Saira Condensed',sans-serif;font-size:0.8rem;color:var(--dust);font-weight:700;margin-left:8px;letter-spacing:0;">${raw} pts</span>`;
+    document.getElementById('grandTotal').innerHTML= anyPlayed
+      ? `<span style="color:${relPar>0?'var(--brass)':'var(--ink)'}">${fmt(relPar)}</span><span style="font-family:'Saira Condensed',sans-serif;font-size:0.8rem;color:var(--dust);font-weight:700;margin-left:8px;letter-spacing:0;">${raw} pts</span>`
+      : 'E';
   }
 
   function render(){
     const numEl=document.getElementById('stationNum');
     if(isBonus()){ numEl.textContent='Bonus'; numEl.style.fontSize='1.15rem'; } else { numEl.textContent=state.station; numEl.style.fontSize=''; }
-    const at=document.getElementById('alignToggle'); if(at) at.checked=!!state.align;
     const an=document.getElementById('alignNote');
-    if(an){ if(isBonus()){ const stn=STATIONS[BONUS]; an.textContent = (stn.dist!=null?`${stn.dist} ft \u00b7 `:'') + '\u00d72 \u00b7 OB = 1'; } else { const stn=STATIONS[state.station]; an.textContent=stn&&stn.dist!=null?`${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0`:''; } }
+    if(an){ if(isBonus()){ const stn=STATIONS[BONUS]; an.textContent = (stn.dist!=null?`${stn.dist} ft \u00b7 `:'') + '\u00d72 \u00b7 OB = 1'; } else { const stn=STATIONS[state.station]; an.textContent=stn&&stn.dist!=null?`${stn.dist} ft \u00b7 bearing ${stn.bearing}\u00b0 \u00b7 par ${PAR[state.station]}`:''; } }
     const canPlus=document.getElementById('canPlus'); if(canPlus) canPlus.textContent=isBonus()?'+10':'+5';
     setBonusSkin(isBonus());
-    applyRotation(); drawMarkers(); updateTally(); updateThrowDots(); updateStationSummary(); updateLog();
+    applyRotation(); drawMarkers(); updateTally(); updateThrowDots(); updateLog();
   }
 
   function palindromeMap(){ const groups={}; state.throws.forEach(t=>{ const k=t.round+'|'+t.station; (groups[k]=groups[k]||[]).push(t); }); const out={}; Object.keys(groups).forEach(k=>{ const p=palindromeFor(groups[k]); if(p) out[k]=p; }); return out; }
@@ -636,8 +665,6 @@
 
   document.getElementById('prevStation').addEventListener('click',()=>changeStation(-1));
   document.getElementById('nextStation').addEventListener('click',()=>changeStation(1));
-  document.getElementById('showAllToggle').addEventListener('change',render);
-  document.getElementById('alignToggle').addEventListener('change',(e)=>{ state.align=e.target.checked; saveState(); render(); });
   document.getElementById('roundDec').addEventListener('click',()=>{ clearArmed(); if(state.roundPointer>0) state.roundPointer--; updateRoundDisplay(); saveState(); render(); });
   document.getElementById('roundInc').addEventListener('click',()=>{ clearArmed(); if(state.roundPointer<state.roundOrder.length-1){ state.roundPointer++; } else { const id=state.nextRoundId++; state.roundOrder.push(id); state.roundPointer=state.roundOrder.length-1; } updateRoundDisplay(); saveState(); render(); });
   document.getElementById('exportCsv').addEventListener('click',()=>{ const n=new Date(),p=x=>String(x).padStart(2,'0'); const stamp=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`; downloadBlob(toCSV(),`landing-round-${dayRoundLabel(currentRoundId())}_${stamp}.csv`,'text/csv'); });
